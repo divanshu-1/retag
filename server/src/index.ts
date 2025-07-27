@@ -48,7 +48,7 @@ const PORT = process.env.PORT || 8080;
 
 // CORS configuration - allows frontend to communicate with backend
 app.use(cors({
-  origin: ['http://localhost:9002', 'http://127.0.0.1:9002'], // Frontend development URLs
+  origin: ['https://retag-beta.vercel.app', 'http://localhost:9002', 'http://127.0.0.1:9002'], // Allow Vercel production and local dev URLs
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma'], // Allowed headers
   credentials: true, // Allow cookies and credentials

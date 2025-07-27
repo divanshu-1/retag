@@ -204,7 +204,7 @@ export default function CheckoutPage() {
     setIsPaying(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:8080/payments/create-order', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -636,9 +636,9 @@ export default function CheckoutPage() {
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm line-clamp-2">{item.name}</div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {item.size && <span>UK {item.size}</span>}
-                          {item.color && item.size && <span> • </span>}
-                          {item.color && <span>{item.color}</span>}
+                          {item.sizes && item.sizes.length > 0 && <span>UK {item.sizes[0]}</span>}
+                          {item.colors && item.colors.length > 0 && item.sizes && item.sizes.length > 0 && <span> • </span>}
+                          {item.colors && item.colors.length > 0 && <span>{item.colors.map(c => c.name).join(', ')}</span>}
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-xs text-muted-foreground">Quantity : {item.quantity}</span>
