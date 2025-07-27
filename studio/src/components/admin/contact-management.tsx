@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Mail, Phone, Calendar, MessageSquare, Eye, CheckCircle, Reply } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/api';
 
 interface ContactSubmission {
   _id: string;
@@ -34,12 +35,7 @@ export default function ContactManagement() {
 
   const fetchSubmissions = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('http://localhost:8080/contact/submissions', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await apiRequest('/contact/submissions');
 
       if (response.ok) {
         const data = await response.json();
@@ -58,12 +54,7 @@ export default function ContactManagement() {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('http://localhost:8080/contact/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await apiRequest('/contact/stats');
 
       if (response.ok) {
         const data = await response.json();
@@ -81,11 +72,9 @@ export default function ContactManagement() {
 
   const updateStatus = async (id: string, status: 'new' | 'read' | 'replied') => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`http://localhost:8080/contact/submissions/${id}/status`, {
+      const response = await apiRequest(`/contact/submissions/${id}/status`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status }),

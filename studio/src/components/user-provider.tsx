@@ -205,7 +205,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const token = getStoredToken();
     if (!token) return;
     try {
-      const response = await fetch('http://localhost:8080/auth/profile', {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com';
+      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -253,7 +254,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const token = getStoredToken();
     if (!token) return [];
     try {
-      const response = await fetch('http://localhost:8080/api/user/addresses', {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com';
+      const response = await fetch(`${API_BASE_URL}/api/user/addresses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

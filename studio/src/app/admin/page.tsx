@@ -101,6 +101,7 @@ export default function AdminDashboard() {
 
     setEditLoading(true);
     try {
+      const token = localStorage.getItem('token');
       await apiRequest(`/sell/admin/products/${editingProduct._id}/edit-price`, {
         method: 'PUT',
         headers: {
@@ -112,12 +113,21 @@ export default function AdminDashboard() {
         })
       });
 
-      toast({
-        title: "Success",
-        description: "Product price updated successfully"
-      });
-      setEditingProduct(null);
-      fetchListed(); // Refresh the list
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Product price updated successfully"
+        });
+        setEditingProduct(null);
+        fetchListed(); // Refresh the list
+      } else {
+        const error = await response.text();
+        toast({
+          title: "Error",
+          description: error || "Failed to update product price",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
