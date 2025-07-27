@@ -91,8 +91,7 @@ router.post('/submit',
         console.log('Uploading images to Cloudinary...');
         cloudinaryResults = await cloudinaryService.uploadMultiple(files, {
           folder: 'retag/products',
-          quality: 'auto:good',
-          format: 'auto'
+          quality: 'auto:good'
         });
         console.log('Images uploaded to Cloudinary successfully');
 

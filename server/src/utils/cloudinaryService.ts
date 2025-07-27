@@ -41,7 +41,7 @@ class CloudinaryService {
       const uploadOptions = {
         folder: options.folder || 'retag/products',
         quality: options.quality || 'auto:good',
-        format: options.format || 'auto',
+        fetch_format: 'auto',
         transformation: options.transformation || [],
         ...options,
       };
