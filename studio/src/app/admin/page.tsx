@@ -101,12 +101,10 @@ export default function AdminDashboard() {
 
     setEditLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/sell/admin/products/${editingProduct._id}/edit-price`, {
+      await apiRequest(`/sell/admin/products/${editingProduct._id}/edit-price`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           price: parseFloat(editPrice),
@@ -114,21 +112,12 @@ export default function AdminDashboard() {
         })
       });
 
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Product price updated successfully"
-        });
-        setEditingProduct(null);
-        fetchListed(); // Refresh the list
-      } else {
-        const error = await response.text();
-        toast({
-          title: "Error",
-          description: error || "Failed to update product price",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Success",
+        description: "Product price updated successfully"
+      });
+      setEditingProduct(null);
+      fetchListed(); // Refresh the list
     } catch (error) {
       toast({
         title: "Error",
@@ -225,7 +214,7 @@ export default function AdminDashboard() {
 
     const fetchPendingRequests = async () => {
       try {
-        const data = await apiRequest('/sell/admin/pending');
+        const data = await apiRequest('/sell/admin/pending').then(res => res.json());
         setRequests(data.products || []);
         setLoading(false);
       } catch (error) {
@@ -242,10 +231,7 @@ export default function AdminDashboard() {
     setListedLoading(true);
     setListedError('');
     try {
-      const res = await fetch('http://localhost:8080/sell/admin/listed', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      const data = await res.json();
+      const data = await apiRequest('/sell/admin/listed').then(res => res.json());
       setListed(data.products || []);
       setListedLoading(false);
     } catch {
@@ -322,15 +308,13 @@ export default function AdminDashboard() {
         }
       }
 
-      const res = await fetch(`http://localhost:8080/sell/admin/review/${id}`, {
+      await apiRequest(`/sell/admin/review/${id}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
       });
-      if (!res.ok) throw new Error('Failed to update product');
       setRequests(reqs => reqs.filter(r => r._id !== id));
       if (action === 'approve') {
         fetchListed(); // Refetch published products after publish
@@ -346,15 +330,13 @@ export default function AdminDashboard() {
     setActionLoading(id + 'unlist');
     setListedError('');
     try {
-      const res = await fetch(`http://localhost:8080/sell/admin/review/${id}`, {
+      await apiRequest(`/sell/admin/review/${id}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ action: 'reject', admin_notes: 'Unlisted by admin' })
       });
-      if (!res.ok) throw new Error('Failed to unlist product');
       fetchListed(); // Refetch published products after unlist
     } catch (e) {
       setListedError('Failed to unlist product.');
@@ -433,7 +415,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col gap-6">
                 {filteredRequests.map(req => {
                   const firstImage = req.images && req.images.length > 0 ? req.images[0] : null;
-                  const imageUrl = firstImage ? (firstImage.startsWith('http') ? firstImage : `http://localhost:8080/${firstImage.replace(/^uploads\//, 'uploads/')}`) : null;
+                  const imageUrl = firstImage ? getImageUrl(firstImage) : null;
                   const aiPrice = req.ai_analysis?.price_suggestion?.suggested_price || '';
                   return (
                     <div key={req._id} className="p-4 sm:p-6 rounded-lg bg-muted flex flex-col gap-4">
@@ -612,7 +594,7 @@ export default function AdminDashboard() {
                 {listed.map(req => {
                   // Show up to 4 images
                   const images = (req.images || []).slice(0, 4);
-                  const imageUrls = images.map(img => img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`);
+                  const imageUrls = images.map(img => getImageUrl(img));
                   const caption = req.ai_analysis?.image_analysis?.caption || '';
                   const price = req.listed_product?.price || req.admin_review?.final_price || 0;
                   const mrp = req.listed_product?.mrp || req.admin_review?.mrp;
