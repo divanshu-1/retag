@@ -75,12 +75,12 @@ const setStoredUser = (user: User | null): void => {
 // JWT token validation and user extraction
 const validateToken = async (token: string): Promise<User | null> => {
   try {
-    const response = await fetch('http://localhost:8080/auth/protected', {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com';
+    const response = await fetch(`${API_BASE_URL}/auth/protected`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
-    
     if (response.ok) {
       const data = await response.json();
       return data.user;
