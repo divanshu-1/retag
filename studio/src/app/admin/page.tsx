@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ContactManagement from '@/components/admin/contact-management';
+import { apiRequest } from '@/lib/api';
 
 interface SellerRequest {
   _id: string;
