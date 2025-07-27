@@ -188,6 +188,12 @@ const nextConfig: NextConfig = {
         port: '8080',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'retag-1n7d.onrender.com',
+        port: '',
+        pathname: '/uploads/**',
+      },
     ],
   },
   /**
