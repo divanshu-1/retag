@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ContactManagement from '@/components/admin/contact-management';
-import { apiRequest } from '@/lib/api';
 
 interface SellerRequest {
   _id: string;
@@ -223,18 +222,19 @@ export default function AdminDashboard() {
     if (!isAdmin) return;
     setLoading(true);
     setError('');
-    fetch('http://localhost:8080/sell/admin/pending', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-      .then(res => res.json())
-      .then(data => {
+
+    const fetchPendingRequests = async () => {
+      try {
+        const data = await apiRequest('/sell/admin/pending');
         setRequests(data.products || []);
         setLoading(false);
-      })
-      .catch(() => {
+      } catch (error) {
         setError('Failed to fetch seller requests.');
         setLoading(false);
-      });
+      }
+    };
+
+    fetchPendingRequests();
   }, [isAdmin]);
 
   // 1. Add a function to fetch listed products
