@@ -43,7 +43,7 @@ export default function ContactUs() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:8080/contact/submit', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/contact/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

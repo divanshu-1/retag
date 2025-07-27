@@ -230,7 +230,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const token = getStoredToken();
     if (!token) return [];
     try {
-      const response = await fetch('http://localhost:8080/api/user/addresses', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/api/user/addresses`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

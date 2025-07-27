@@ -39,7 +39,7 @@ export default function NewArrivals() {
               images: (p.images || []).map((img: any) => {
                 if (typeof img === 'string') {
                   // Handle legacy string URLs
-                  return img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`;
+                  return img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
                 } else if (img && img.url) {
                   // Handle new Cloudinary format
                   return isCloudinaryUrl(img.url) ? generateProductCardImage(img.public_id) : img.url;

@@ -52,7 +52,7 @@ export default function CheckoutPage() {
     try {
       console.log('Manual verification attempt with data:', lastPaymentData);
 
-      const verifyRes = await fetch('http://localhost:8080/payments/verify', {
+      const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/payments/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ export default function CheckoutPage() {
 
               // First check if server is reachable
               console.log('Checking server health...');
-              const healthCheck = await fetch('http://localhost:8080/health', {
+              const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/health`, {
                 method: 'GET',
                 headers: {
                   'Cache-Control': 'no-cache',
@@ -256,7 +256,7 @@ export default function CheckoutPage() {
 
               console.log('Server is reachable, proceeding with payment verification...');
 
-              const verifyRes = await fetch('http://localhost:8080/payments/verify', {
+              const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/payments/verify`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
