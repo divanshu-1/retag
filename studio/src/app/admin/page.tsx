@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ContactManagement from '@/components/admin/contact-management';
-import { apiRequest } from '@/lib/api';
 
 interface SellerRequest {
   _id: string;
@@ -103,11 +102,10 @@ export default function AdminDashboard() {
     setEditLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/sell/admin/products/${editingProduct._id}/edit-price`, {
+      const response = await apiRequest(`/sell/admin/products/${editingProduct._id}/edit-price`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           price: parseFloat(editPrice),
@@ -224,13 +222,21 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     apiRequest('/sell/admin/pending')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        setRequests(data.products || []);
+        console.log('Admin pending data:', data);
+        setRequests(Array.isArray(data?.products) ? data.products : []);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('Error fetching pending requests:', error);
         setError('Failed to fetch seller requests.');
+        setRequests([]);
         setLoading(false);
       });
   }, [isAdmin]);
@@ -240,14 +246,18 @@ export default function AdminDashboard() {
     setListedLoading(true);
     setListedError('');
     try {
-      const res = await fetch('http://localhost:8080/sell/admin/listed', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const res = await apiRequest('/sell/admin/listed');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
-      setListed(data.products || []);
+      console.log('Admin listed data:', data);
+      setListed(Array.isArray(data?.products) ? data.products : []);
       setListedLoading(false);
-    } catch {
+    } catch (error) {
+      console.error('Error fetching listed products:', error);
       setListedError('Failed to fetch listed products.');
+      setListed([]);
       setListedLoading(false);
     }
   };
@@ -320,11 +330,10 @@ export default function AdminDashboard() {
         }
       }
 
-      const res = await fetch(`http://localhost:8080/sell/admin/review/${id}`, {
+      const res = await apiRequest(`/sell/admin/review/${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(body)
       });
@@ -344,11 +353,10 @@ export default function AdminDashboard() {
     setActionLoading(id + 'unlist');
     setListedError('');
     try {
-      const res = await fetch(`http://localhost:8080/sell/admin/review/${id}`, {
+      const res = await apiRequest(`/sell/admin/review/${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ action: 'reject', admin_notes: 'Unlisted by admin' })
       });
@@ -431,7 +439,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col gap-6">
                 {filteredRequests.map(req => {
                   const firstImage = req.images && req.images.length > 0 ? req.images[0] : null;
-                  const imageUrl = firstImage ? (firstImage.startsWith('http') ? firstImage : `http://localhost:8080/${firstImage.replace(/^uploads\//, 'uploads/')}`) : null;
+                  const imageUrl = firstImage ? (firstImage.startsWith('http') ? firstImage : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${firstImage.replace(/^uploads\//, 'uploads/')}`) : null;
                   const aiPrice = req.ai_analysis?.price_suggestion?.suggested_price || '';
                   return (
                     <div key={req._id} className="p-4 sm:p-6 rounded-lg bg-muted flex flex-col gap-4">
@@ -610,7 +618,7 @@ export default function AdminDashboard() {
                 {listed.map(req => {
                   // Show up to 4 images
                   const images = (req.images || []).slice(0, 4);
-                  const imageUrls = images.map(img => img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`);
+                  const imageUrls = images.map(img => img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`);
                   const caption = req.ai_analysis?.image_analysis?.caption || '';
                   const price = req.listed_product?.price || req.admin_review?.final_price || 0;
                   const mrp = req.listed_product?.mrp || req.admin_review?.mrp;
