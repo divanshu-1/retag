@@ -9,6 +9,7 @@ import type { View } from '@/app/page';
 import type { Category } from '@/lib/products';
 import { apiRequest } from '@/lib/api';
 import { getConsistentColors, getColorHex } from '@/lib/product-colors';
+import { generateProductDetailImage, isCloudinaryUrl } from '@/lib/cloudinary';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   // All hooks at the top!
@@ -39,7 +40,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               price: `₹${lp.price || ''}`,
               originalPrice: lp.mrp ? `₹${lp.mrp}` : '',
               condition: backendProduct.ai_analysis?.image_analysis?.quality || '',
-              images: (backendProduct.images || []).map((img: string) => img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`),
+              images: (backendProduct.images || []).map((img: any) => {
+                if (typeof img === 'string') {
+                  // Handle legacy string URLs
+                  return img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`;
+                } else if (img && img.url) {
+                  // Handle new Cloudinary format
+                  return isCloudinaryUrl(img.url) ? generateProductDetailImage(img.public_id) : img.url;
+                }
+                return '';
+              }).filter(Boolean),
               imageHints: lp.tags || [],
               sizes: backendProduct.size ? [backendProduct.size] : [],
               colors: (backendProduct.ai_analysis?.image_analysis?.colors_detected || []).length > 0

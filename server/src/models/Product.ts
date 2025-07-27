@@ -34,7 +34,14 @@ export interface IProduct extends Document {
   age?: string;                     // Age of the item
   wear_count?: number;              // How many times worn
   damage?: string;                  // Description of any damage
-  images: string[];                 // Base64 encoded product images
+  images: Array<{                   // Cloudinary image metadata
+    url: string;                    // Cloudinary secure URL
+    public_id: string;              // Cloudinary public ID for management
+    width: number;                  // Image width
+    height: number;                 // Image height
+    format: string;                 // Image format (jpg, png, etc.)
+    bytes: number;                  // File size in bytes
+  }>;
   // AI-powered analysis results
   ai_analysis: {
     image_analysis: {
@@ -148,8 +155,12 @@ const ProductSchema = new Schema<IProduct>({
     trim: true
   },
   images: [{
-    type: String,
-    required: true
+    url: { type: String, required: true },
+    public_id: { type: String, required: true },
+    width: { type: Number, required: true },
+    height: { type: Number, required: true },
+    format: { type: String, required: true },
+    bytes: { type: Number, required: true }
   }],
   ai_analysis: {
     image_analysis: {

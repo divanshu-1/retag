@@ -6,6 +6,7 @@ import { apiRequest } from '@/lib/api';
 import type { Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
 import { getColorHex } from '@/lib/product-colors';
+import { generateProductCardImage, isCloudinaryUrl } from '@/lib/cloudinary';
 
 export default function NewArrivals() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -35,9 +36,16 @@ export default function NewArrivals() {
               price: `₹${lp.price || ''}`,
               originalPrice: '',
               condition: p.ai_analysis?.image_analysis?.quality || '',
-              images: (p.images || []).map((img: string) =>
-                img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`
-              ),
+              images: (p.images || []).map((img: any) => {
+                if (typeof img === 'string') {
+                  // Handle legacy string URLs
+                  return img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`;
+                } else if (img && img.url) {
+                  // Handle new Cloudinary format
+                  return isCloudinaryUrl(img.url) ? generateProductCardImage(img.public_id) : img.url;
+                }
+                return '';
+              }).filter(Boolean),
               imageHints: lp.tags || [],
               sizes: p.size ? [p.size] : [],
               colors: (p.ai_analysis?.image_analysis?.colors_detected || []).map((colorName: string) => ({

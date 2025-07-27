@@ -2,29 +2,26 @@ import express, { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import aiService, { ProductAnalysis } from '../utils/aiService';
 import Product from '../models/Product';
-import multer, { StorageEngine } from 'multer';
-import path from 'path';
-import fs from 'fs';
+import multer from 'multer';
+import cloudinaryService from '../utils/cloudinaryService';
 
 const router = express.Router();
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '../../uploads/');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
-
-// Multer setup for disk storage
-const storage: StorageEngine = multer.diskStorage({
-  destination: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
-    cb(null, uploadsDir);
+// Multer setup for memory storage (Cloudinary will handle file storage)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
   },
-  filename: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and JPG are allowed.'));
+    }
   }
 });
-const upload = multer({ storage });
 
 // Debug middleware for Multer
 function logMulter(req: Request, res: Response, next: NextFunction) {
@@ -74,32 +71,48 @@ router.post('/submit',
       } = req.body;
       console.log('Processing images...');
       const files = req.files as Express.Multer.File[];
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+
       if (!files || files.length === 0) {
         console.log('No images uploaded');
         return res.status(400).json({ message: 'At least one image is required' });
       }
-      if (files.some(file => !allowedTypes.includes(file.mimetype))) {
-        console.log('Invalid image type');
-        return res.status(400).json({ message: 'Images must be JPEG or PNG files' });
+
+      // Check if Cloudinary is configured
+      if (!cloudinaryService.isConfigured()) {
+        console.error('Cloudinary not configured');
+        return res.status(500).json({ message: 'Image upload service not configured' });
       }
+
+      let cloudinaryResults;
       let imageBase64 = '';
+
       try {
-        const firstImagePath = files[0].path;
-        const fs = require('fs');
-        const imageBuffer = fs.readFileSync(firstImagePath);
-        imageBase64 = imageBuffer.toString('base64');
-        console.log('Image processed to base64');
-      } catch (imgErr) {
-        console.error('Error processing image:', imgErr);
-        return res.status(500).json({ message: 'Error processing image' });
+        // Upload images to Cloudinary
+        console.log('Uploading images to Cloudinary...');
+        cloudinaryResults = await cloudinaryService.uploadMultiple(files, {
+          folder: 'retag/products',
+          quality: 'auto:good',
+          format: 'auto'
+        });
+        console.log('Images uploaded to Cloudinary successfully');
+
+        // Convert first image to base64 for AI analysis
+        imageBase64 = files[0].buffer.toString('base64');
+        console.log('Image processed to base64 for AI analysis');
+      } catch (uploadErr) {
+        console.error('Error uploading images to Cloudinary:', uploadErr);
+        return res.status(500).json({ message: 'Error uploading images' });
       }
-      // Save only the relative path for images
-      const processedImages = files.map(file => {
-        // file.path might be /Users/username/.../uploads/filename.jpg
-        // file.filename is just 'filename.jpg'
-        return 'uploads/' + file.filename;
-      });
+
+      // Store Cloudinary URLs and metadata
+      const processedImages = cloudinaryResults.map(result => ({
+        url: result.secure_url,
+        public_id: result.public_id,
+        width: result.width,
+        height: result.height,
+        format: result.format,
+        bytes: result.bytes
+      }));
       let aiAnalysis;
       try {
         console.log('Running AI analysis...');
