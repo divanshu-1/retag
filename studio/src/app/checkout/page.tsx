@@ -36,6 +36,16 @@ export default function CheckoutPage() {
     phone: '',
     _id: undefined,
   });
+
+  // Check authentication on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('No authentication token found, redirecting to home');
+      window.location.href = '/';
+      return;
+    }
+  }, []);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
@@ -131,14 +141,36 @@ export default function CheckoutPage() {
       setError('');
       try {
         const token = localStorage.getItem('token');
+        console.log('Token for address fetch:', token ? 'Present' : 'Missing');
+
         const res = await fetch('/api/user/addresses', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) throw new Error('Failed to fetch addresses');
+
+        console.log('Address fetch response status:', res.status);
+        console.log('Address fetch response ok:', res.ok);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.log('Address fetch error response:', errorText);
+
+          // Handle authentication errors specifically
+          if (res.status === 401) {
+            console.log('Authentication failed, redirecting to home');
+            localStorage.removeItem('token');
+            window.location.href = '/';
+            return;
+          }
+
+          throw new Error(`Failed to fetch addresses: ${res.status} ${errorText}`);
+        }
+
         const data = await res.json();
+        console.log('Fetched addresses:', data);
         setAddresses(data);
       } catch (err) {
-        setError('Failed to fetch addresses');
+        console.error('Address fetch error:', err);
+        setError('Failed to fetch addresses. Please try refreshing the page or log in again.');
       } finally {
         setLoading(false);
       }
