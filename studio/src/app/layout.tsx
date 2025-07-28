@@ -51,6 +51,7 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
     shortcut: '/favicon.ico',
   },
+  manifest: '/site.webmanifest',
 };
 
 /**
@@ -80,6 +81,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
         <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
 
         {/* Font preloading for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
