@@ -9,7 +9,7 @@ export interface ImageAnalysis {
   quality: 'excellent' | 'good' | 'fair' | 'poor';
   category: string;
   brand_detected?: string;
-  colors_detected?: string[];
+
   condition_score: number; // 1-10
   features: string[];
 }
@@ -116,97 +116,8 @@ async function detectBrandWithOCR(imageBase64: string): Promise<string | null> {
   }
 }
 
-// Google Vision API for color detection
-async function detectColorsWithVision(imageBase64: string): Promise<string[]> {
-  try {
-    const client = initializeVisionClient();
-    if (!client) {
-      console.warn('Google Vision client not available, skipping color detection');
-      return [];
-    }
-    const [result] = await client.imageProperties({ image: { content: imageBase64 } });
-    const colors = result.imagePropertiesAnnotation?.dominantColors?.colors;
 
-    if (!colors || colors.length === 0) {
-      return [];
-    }
 
-    // Convert RGB values to color names
-    const detectedColors: string[] = [];
-
-    // Get the top 2-3 most dominant colors
-    const topColors = colors.slice(0, 3).filter(color => (color.score || 0) > 0.1);
-
-    for (const color of topColors) {
-      if (color.color?.red !== undefined && color.color?.green !== undefined && color.color?.blue !== undefined) {
-        const colorName = rgbToColorName(
-          Math.round(color.color.red || 0),
-          Math.round(color.color.green || 0),
-          Math.round(color.color.blue || 0)
-        );
-        if (colorName && !detectedColors.includes(colorName)) {
-          detectedColors.push(colorName);
-        }
-      }
-    }
-
-    return detectedColors.slice(0, 2); // Return max 2 colors to avoid clutter
-  } catch (err) {
-    console.error('Google Vision color detection error:', err);
-    return [];
-  }
-}
-
-// Convert RGB values to human-readable color names
-function rgbToColorName(r: number, g: number, b: number): string {
-  // Define color ranges for common clothing colors
-  const colorRanges = [
-    { name: 'Black', r: [0, 50], g: [0, 50], b: [0, 50] },
-    { name: 'White', r: [200, 255], g: [200, 255], b: [200, 255] },
-    { name: 'Gray', r: [80, 180], g: [80, 180], b: [80, 180] },
-    { name: 'Red', r: [150, 255], g: [0, 100], b: [0, 100] },
-    { name: 'Blue', r: [0, 100], g: [0, 150], b: [150, 255] },
-    { name: 'Navy', r: [0, 50], g: [0, 50], b: [100, 200] },
-    { name: 'Green', r: [0, 150], g: [100, 255], b: [0, 150] },
-    { name: 'Yellow', r: [200, 255], g: [200, 255], b: [0, 100] },
-    { name: 'Orange', r: [200, 255], g: [100, 200], b: [0, 100] },
-    { name: 'Purple', r: [100, 200], g: [0, 150], b: [150, 255] },
-    { name: 'Pink', r: [200, 255], g: [150, 220], b: [150, 220] },
-    { name: 'Brown', r: [100, 180], g: [50, 120], b: [20, 80] },
-    { name: 'Beige', r: [200, 255], g: [180, 230], b: [140, 200] },
-    { name: 'Khaki', r: [150, 200], g: [140, 190], b: [100, 150] }
-  ];
-
-  // Find the best matching color
-  let bestMatch = 'Gray'; // Default fallback
-  let minDistance = Infinity;
-
-  for (const colorRange of colorRanges) {
-    if (
-      r >= colorRange.r[0] && r <= colorRange.r[1] &&
-      g >= colorRange.g[0] && g <= colorRange.g[1] &&
-      b >= colorRange.b[0] && b <= colorRange.b[1]
-    ) {
-      // Calculate distance from center of range
-      const centerR = (colorRange.r[0] + colorRange.r[1]) / 2;
-      const centerG = (colorRange.g[0] + colorRange.g[1]) / 2;
-      const centerB = (colorRange.b[0] + colorRange.b[1]) / 2;
-
-      const distance = Math.sqrt(
-        Math.pow(r - centerR, 2) +
-        Math.pow(g - centerG, 2) +
-        Math.pow(b - centerB, 2)
-      );
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        bestMatch = colorRange.name;
-      }
-    }
-  }
-
-  return bestMatch;
-}
 
 // Gemini API for price suggestion
 class GeminiService {
@@ -418,14 +329,13 @@ export class AIService {
         const score = hfResult?.[0]?.score || 0.5;
         // OCR for brand detection
         detectedBrand = await detectBrandWithOCR(images[0]);
-        // Color detection
-        const detectedColors = await detectColorsWithVision(images[0]);
+
         imageAnalysis = {
           caption: `Detected as: ${label}`,
           quality: score > 0.8 ? 'excellent' : score > 0.6 ? 'good' : score > 0.4 ? 'fair' : 'poor',
           category: productDetails.category, // Use user-selected category instead of AI-detected
           brand_detected: detectedBrand || undefined,
-          colors_detected: detectedColors.length > 0 ? detectedColors : undefined,
+
           condition_score: Math.round(score * 10),
           features: [label]
         };

@@ -48,7 +48,7 @@ export interface IProduct extends Document {
       caption: string;                                    // AI-generated description
       quality: 'excellent' | 'good' | 'fair' | 'poor';  // Quality assessment
       category: string;                                   // Detected category
-      colors_detected?: string[];                         // AI-detected colors
+
       condition_score: number;                            // Condition score (0-100)
       features: string[];                                 // Detected features
     };
@@ -171,7 +171,7 @@ const ProductSchema = new Schema<IProduct>({
         required: true 
       },
       category: { type: String, required: true },
-      colors_detected: [{ type: String }],
+
       condition_score: {
         type: Number,
         min: 1,
