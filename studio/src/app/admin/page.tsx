@@ -224,16 +224,27 @@ export default function AdminDashboard() {
       setLoading(true);
       setError('');
       try {
+        console.log('Fetching pending requests...');
+        console.log('User:', user);
+        console.log('Is Admin:', isAdmin);
+        console.log('Token:', localStorage.getItem('token'));
+
         const response = await apiRequest('/sell/admin/pending');
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text();
+          console.error('API Error Response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
         }
         const data = await response.json();
+        console.log('Fetched data:', data);
         setRequests(data.products || []);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching pending requests:', error);
-        setError('Failed to fetch seller requests.');
+        setError(`Failed to fetch seller requests: ${error instanceof Error ? error.message : String(error)}`);
         setLoading(false);
       }
     };
