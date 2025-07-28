@@ -216,9 +216,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',                    // Frontend API path pattern
-        destination: process.env.NODE_ENV === 'production'
-          ? 'https://retag-1n7d.onrender.com/:path*'  // Production backend URL
-          : 'http://localhost:8080/:path*',   // Local development backend
+        destination: 'https://retag-1n7d.onrender.com/:path*',  // Always use deployed backend on Render
       },
     ];
   },
