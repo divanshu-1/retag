@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
+import { LoginButton } from '@/components/auth/login-button';
 import Script from 'next/script';
 
 type Address = {
@@ -40,11 +41,17 @@ export default function CheckoutPage() {
   // Check authentication on mount
   useEffect(() => {
     const token = localStorage.getItem('token');
+    console.log('Checkout page - checking authentication, token:', token ? 'Present' : 'Missing');
+
     if (!token) {
       console.log('No authentication token found, redirecting to home');
+      alert('Please log in to access checkout');
       window.location.href = '/';
       return;
     }
+
+    // If token exists, the address fetch will validate it
+    // If it's invalid, the 401 handler will clear it and redirect
   }, []);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
@@ -631,7 +638,16 @@ export default function CheckoutPage() {
                 </div>
               ))}
               {loading && <div className="text-muted-foreground p-4 md:p-6 text-sm md:text-base">Loading addresses...</div>}
-              {error && <div className="text-red-500 p-4 md:p-6 text-sm md:text-base">{error}</div>}
+              {error && (
+                <div className="text-red-500 p-4 md:p-6 text-sm md:text-base">
+                  <div className="mb-4">{error}</div>
+                  <LoginButton>
+                    <Button variant="outline" className="w-full">
+                      Log In to Continue
+                    </Button>
+                  </LoginButton>
+                </div>
+              )}
             </div>
           </div>
           {/* Price Details Section */}
