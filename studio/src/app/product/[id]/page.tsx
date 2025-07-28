@@ -8,7 +8,7 @@ import { useUser } from '@/hooks/use-user';
 import type { View } from '@/app/page';
 import type { Category } from '@/lib/products';
 import { apiRequest } from '@/lib/api';
-import { getConsistentColors, getColorHex } from '@/lib/product-colors';
+
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   // All hooks at the top!

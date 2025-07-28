@@ -20,6 +20,7 @@ import { apiRequest } from '@/lib/api';
 import type { Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
 
+
 /**
  * Featured Products Component
  *
@@ -50,9 +51,16 @@ export default function FeaturedProducts() {
               price: `₹${lp.price || ''}`,
               originalPrice: '',
               condition: p.ai_analysis?.image_analysis?.quality || '',
-              images: (p.images || []).map((img: string) =>
-                img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`
-              ),
+              images: (p.images || []).map((img: any) => {
+                if (typeof img === 'string') {
+                  // Handle legacy string URLs
+                  return img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
+                } else if (img && img.url) {
+                  // Handle Cloudinary objects - use URL directly
+                  return img.url;
+                }
+                return '';
+              }).filter(Boolean),
               imageHints: lp.tags || [],
               sizes: p.size ? [p.size] : [],
             };
