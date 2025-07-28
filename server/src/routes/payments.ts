@@ -179,6 +179,12 @@ router.post('/verify', async (req, res) => {
                 });
             }
 
+            // Check if payment is already verified to prevent duplicate processing
+            if (order.status === 'paid' && order.razorpayPaymentId) {
+                console.log('Payment already verified for order:', order_id);
+                return res.json({ success: true, message: "Payment already verified" });
+            }
+
             // Update order status to 'paid' and add payment ID
             await Order.findOneAndUpdate(
                 { razorpayOrderId: order_id },

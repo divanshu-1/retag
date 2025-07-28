@@ -49,26 +49,55 @@ const EmptyOrdersIcon = () => (
   </div>
 );
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'paid':
+const getStatusColor = (status: string, estimatedDeliveryDate?: string) => {
+  const actualStatus = getActualStatus(status, estimatedDeliveryDate);
+  switch (actualStatus) {
+    case 'delivered':
       return 'bg-green-500/10 text-green-500 border-green-500/20';
+    case 'shipped':
+      return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
     case 'failed':
       return 'bg-red-500/10 text-red-500 border-red-500/20';
-    case 'created':
+    case 'processing':
       return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
     default:
       return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
   }
 };
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'paid':
+const getActualStatus = (status: string, estimatedDeliveryDate?: string) => {
+  if (status === 'failed') return 'failed';
+  if (status === 'created') return 'processing';
+
+  if (status === 'paid') {
+    if (estimatedDeliveryDate) {
+      const deliveryDate = new Date(estimatedDeliveryDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+      deliveryDate.setHours(0, 0, 0, 0);
+
+      if (today >= deliveryDate) {
+        return 'delivered';
+      } else {
+        return 'shipped';
+      }
+    }
+    return 'shipped'; // Default to shipped if no delivery date
+  }
+
+  return status;
+};
+
+const getStatusText = (status: string, estimatedDeliveryDate?: string) => {
+  const actualStatus = getActualStatus(status, estimatedDeliveryDate);
+  switch (actualStatus) {
+    case 'delivered':
       return 'Delivered';
+    case 'shipped':
+      return 'Shipped';
     case 'failed':
       return 'Delivery failed';
-    case 'created':
+    case 'processing':
       return 'Processing';
     default:
       return status;
@@ -245,8 +274,8 @@ export default function OrdersView({ onNavigate }: { onNavigate: (view: View) =>
                           </div>
                         )}
                       </div>
-                      <Badge className={getStatusColor(order.status)}>
-                        {getStatusText(order.status)}
+                      <Badge className={getStatusColor(order.status, order.estimatedDeliveryDate)}>
+                        {getStatusText(order.status, order.estimatedDeliveryDate)}
                       </Badge>
                     </div>
                   </div>
