@@ -220,7 +220,7 @@ export default function ProductList({ category, onBackToCategories, onNavigate }
           // Map backend products to Product type
           const mapped = data.products.map((p: any) => {
             const lp = p.listed_product || {};
-            const mainCategory = lp.mainCategory || p.mainCategory || 'Unisex';
+            const mainCategory = lp.mainCategory || 'Unisex';
             if ((mainCategory === 'Men' && category === 'Men') ||
                 (mainCategory === 'Women' && category === 'Women') ||
                 (mainCategory === 'Kids' && category === 'Kids') ||
@@ -236,13 +236,18 @@ export default function ProductList({ category, onBackToCategories, onNavigate }
                 originalPrice: lp.mrp ? `₹${lp.mrp}` : '',
                 condition: p.ai_analysis?.image_analysis?.quality || '',
                 images: (p.images || []).map((img: any) => {
+                  console.log('Product List - Raw image data:', img); // Debug log
                   if (typeof img === 'string') {
                     // Handle legacy string URLs
-                    return img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
+                    const url = img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
+                    console.log('Product List - String URL:', url); // Debug log
+                    return url;
                   } else if (img && img.url) {
                     // Handle Cloudinary objects - use URL directly
+                    console.log('Product List - Cloudinary URL:', img.url); // Debug log
                     return img.url;
                   }
+                  console.log('Product List - No valid image data'); // Debug log
                   return '';
                 }).filter(Boolean),
                 imageHints: lp.tags || [],

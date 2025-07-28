@@ -38,13 +38,18 @@ export default function NewArrivals() {
               originalPrice: '',
               condition: p.ai_analysis?.image_analysis?.quality || '',
               images: (p.images || []).map((img: any) => {
+                console.log('New Arrivals - Raw image data:', img); // Debug log
                 if (typeof img === 'string') {
                   // Handle legacy string URLs
-                  return img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
+                  const url = img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
+                  console.log('New Arrivals - String URL:', url); // Debug log
+                  return url;
                 } else if (img && img.url) {
                   // Handle Cloudinary objects - use URL directly
+                  console.log('New Arrivals - Cloudinary URL:', img.url); // Debug log
                   return img.url;
                 }
+                console.log('New Arrivals - No valid image data'); // Debug log
                 return '';
               }).filter(Boolean),
               imageHints: lp.tags || [],

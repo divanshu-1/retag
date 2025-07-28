@@ -35,18 +35,23 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               name: lp.title || backendProduct.article,
               brand: backendProduct.brand,
               category: lp.category || '',
-              mainCategory: lp.mainCategory || backendProduct.mainCategory || 'Unisex',
+              mainCategory: lp.mainCategory || 'Unisex',
               price: `₹${lp.price || ''}`,
               originalPrice: lp.mrp ? `₹${lp.mrp}` : '',
               condition: backendProduct.ai_analysis?.image_analysis?.quality || '',
               images: (backendProduct.images || []).map((img: any) => {
+                console.log('Product Details - Raw image data:', img); // Debug log
                 if (typeof img === 'string') {
                   // Handle legacy string URLs
-                  return img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
+                  const url = img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
+                  console.log('Product Details - String URL:', url); // Debug log
+                  return url;
                 } else if (img && img.url) {
                   // Handle Cloudinary objects - use URL directly
+                  console.log('Product Details - Cloudinary URL:', img.url); // Debug log
                   return img.url;
                 }
+                console.log('Product Details - No valid image data'); // Debug log
                 return '';
               }).filter(Boolean),
               imageHints: lp.tags || [],
