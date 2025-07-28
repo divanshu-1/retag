@@ -220,7 +220,7 @@ export default function ProductList({ category, onBackToCategories, onNavigate }
           // Map backend products to Product type
           const mapped = data.products.map((p: any) => {
             const lp = p.listed_product || {};
-            const mainCategory = lp.mainCategory || 'Unisex';
+            const mainCategory = lp.mainCategory || p.mainCategory || 'Unisex';
             if ((mainCategory === 'Men' && category === 'Men') ||
                 (mainCategory === 'Women' && category === 'Women') ||
                 (mainCategory === 'Kids' && category === 'Kids') ||
@@ -235,7 +235,16 @@ export default function ProductList({ category, onBackToCategories, onNavigate }
                 price: `₹${lp.price || ''}`,
                 originalPrice: lp.mrp ? `₹${lp.mrp}` : '',
                 condition: p.ai_analysis?.image_analysis?.quality || '',
-                images: (p.images || []).map((img: string) => img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`),
+                images: (p.images || []).map((img: any) => {
+                  if (typeof img === 'string') {
+                    // Handle legacy string URLs
+                    return img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
+                  } else if (img && img.url) {
+                    // Handle Cloudinary objects - use URL directly
+                    return img.url;
+                  }
+                  return '';
+                }).filter(Boolean),
                 imageHints: lp.tags || [],
                 sizes: p.size ? [p.size] : [],
                 colors: (p.ai_analysis?.image_analysis?.colors_detected || []).length > 0

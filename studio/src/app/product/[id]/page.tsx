@@ -35,11 +35,20 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               name: lp.title || backendProduct.article,
               brand: backendProduct.brand,
               category: lp.category || '',
-              mainCategory: lp.mainCategory || 'Unisex',
+              mainCategory: lp.mainCategory || backendProduct.mainCategory || 'Unisex',
               price: `₹${lp.price || ''}`,
               originalPrice: lp.mrp ? `₹${lp.mrp}` : '',
               condition: backendProduct.ai_analysis?.image_analysis?.quality || '',
-              images: (backendProduct.images || []).map((img: string) => img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`),
+              images: (backendProduct.images || []).map((img: any) => {
+                if (typeof img === 'string') {
+                  // Handle legacy string URLs
+                  return img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
+                } else if (img && img.url) {
+                  // Handle Cloudinary objects - use URL directly
+                  return img.url;
+                }
+                return '';
+              }).filter(Boolean),
               imageHints: lp.tags || [],
               sizes: backendProduct.size ? [backendProduct.size] : [],
               colors: (backendProduct.ai_analysis?.image_analysis?.colors_detected || []).length > 0

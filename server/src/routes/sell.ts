@@ -365,6 +365,7 @@ router.post('/admin/review/:id', passport.authenticate('jwt', { session: false }
         mrp: mrp || undefined,
         discount_percentage: discount_percentage || undefined,
         category: product.category, // Use user-selected category instead of AI-detected
+        mainCategory: mainCategory, // Add mainCategory to listed_product
         tags: [
           product.brand,
           product.article,

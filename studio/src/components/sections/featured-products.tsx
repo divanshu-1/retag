@@ -47,12 +47,12 @@ export default function FeaturedProducts() {
               name: lp.title || p.article,
               brand: p.brand,
               category: lp.category || '',
-              mainCategory: lp.mainCategory || 'Unisex',
+              mainCategory: lp.mainCategory || p.mainCategory || 'Unisex',
               price: `₹${lp.price || ''}`,
               originalPrice: '',
               condition: p.ai_analysis?.image_analysis?.quality || '',
               images: (p.images || []).map((img: string) =>
-                img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`
+                img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`
               ),
               imageHints: lp.tags || [],
               sizes: p.size ? [p.size] : [],

@@ -6,7 +6,7 @@ import { apiRequest } from '@/lib/api';
 import type { Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
 import { getColorHex } from '@/lib/product-colors';
-import { generateProductCardImage, isCloudinaryUrl } from '@/lib/cloudinary';
+
 
 export default function NewArrivals() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,12 +27,13 @@ export default function NewArrivals() {
 
           const mapped = sortedProducts.slice(0, 4).map((p: any) => {
             const lp = p.listed_product || {};
+            console.log('New Arrivals - Product images:', p.images); // Debug log
             return {
               id: p._id,
               name: lp.title || p.article,
               brand: p.brand,
               category: lp.category || '',
-              mainCategory: lp.mainCategory || 'Unisex',
+              mainCategory: lp.mainCategory || p.mainCategory || 'Unisex',
               price: `₹${lp.price || ''}`,
               originalPrice: '',
               condition: p.ai_analysis?.image_analysis?.quality || '',
@@ -41,8 +42,8 @@ export default function NewArrivals() {
                   // Handle legacy string URLs
                   return img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
                 } else if (img && img.url) {
-                  // Handle new Cloudinary format
-                  return isCloudinaryUrl(img.url) ? generateProductCardImage(img.public_id) : img.url;
+                  // Handle Cloudinary objects - use URL directly
+                  return img.url;
                 }
                 return '';
               }).filter(Boolean),
