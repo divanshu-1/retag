@@ -47,6 +47,18 @@ export default function AdminDashboard() {
   const { user } = useUser();
   const { toast } = useToast();
   const isAdmin = user?.email === 'retagcontact00@gmail.com';
+
+  // Early return if not admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-muted-foreground">You don't have permission to access this page.</p>
+        </div>
+      </div>
+    );
+  }
   const [requests, setRequests] = useState<SellerRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -224,27 +236,16 @@ export default function AdminDashboard() {
       setLoading(true);
       setError('');
       try {
-        console.log('Fetching pending requests...');
-        console.log('User:', user);
-        console.log('Is Admin:', isAdmin);
-        console.log('Token:', localStorage.getItem('token'));
-
         const response = await apiRequest('/sell/admin/pending');
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('API Error Response:', errorText);
-          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log('Fetched data:', data);
         setRequests(data.products || []);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching pending requests:', error);
-        setError(`Failed to fetch seller requests: ${error instanceof Error ? error.message : String(error)}`);
+        setError('Failed to fetch seller requests.');
         setLoading(false);
       }
     };
@@ -448,7 +449,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col gap-6">
                 {filteredRequests.map(req => {
                   const firstImage = req.images && req.images.length > 0 ? req.images[0] : null;
-                  const imageUrl = firstImage ? (firstImage.startsWith('http') ? firstImage : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${firstImage.replace(/^uploads\//, 'uploads/')}`) : null;
+                  const imageUrl = firstImage && typeof firstImage === 'string' ? (firstImage.startsWith('http') ? firstImage : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${firstImage.replace(/^uploads\//, 'uploads/')}`) : null;
                   const aiPrice = req.ai_analysis?.price_suggestion?.suggested_price || '';
                   return (
                     <div key={req._id} className="p-4 sm:p-6 rounded-lg bg-muted flex flex-col gap-4">
@@ -627,7 +628,7 @@ export default function AdminDashboard() {
                 {listed.map(req => {
                   // Show up to 4 images
                   const images = (req.images || []).slice(0, 4);
-                  const imageUrls = images.map(img => img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`);
+                  const imageUrls = images.map(img => typeof img === 'string' && img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${typeof img === 'string' ? img.replace(/^uploads\//, 'uploads/') : img}`);
                   const caption = req.ai_analysis?.image_analysis?.caption || '';
                   const price = req.listed_product?.price || req.admin_review?.final_price || 0;
                   const mrp = req.listed_product?.mrp || req.admin_review?.mrp;
