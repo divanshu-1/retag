@@ -13,7 +13,6 @@ export type Product = {
   images: string[];
   imageHints: string[];
   sizes: string[];
-  colors: { name: string; hex: string }[];
 };
 
 export const products: Product[] = [

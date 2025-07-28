@@ -34,7 +34,6 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useUser } from '@/hooks/use-user';
 import { apiRequest } from '@/lib/api';
-import { getConsistentColors, getColorHex } from '@/lib/product-colors';
 
 const FilterSidebar = ({ 
   products,
@@ -242,12 +241,6 @@ export default function ProductList({ category, onBackToCategories, onNavigate }
                 }).filter(Boolean),
                 imageHints: lp.tags || [],
                 sizes: p.size ? [p.size] : [],
-                colors: (p.ai_analysis?.image_analysis?.colors_detected || []).length > 0
-                  ? (p.ai_analysis.image_analysis.colors_detected || []).map((colorName: string) => ({
-                      name: colorName,
-                      hex: getColorHex(colorName)
-                    }))
-                  : getConsistentColors(p._id, p.category || 'Other', p.article || '', p.brand || ''),
               };
             }
             return null;

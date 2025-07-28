@@ -19,7 +19,6 @@ import { useState, useEffect } from 'react';
 import { apiRequest } from '@/lib/api';
 import type { Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
-import { getColorHex } from '@/lib/product-colors';
 
 /**
  * Featured Products Component
@@ -51,27 +50,11 @@ export default function FeaturedProducts() {
               price: `₹${lp.price || ''}`,
               originalPrice: '',
               condition: p.ai_analysis?.image_analysis?.quality || '',
-              images: (p.images || []).map((img: any) => {
-                console.log('Featured Products - Raw image data:', img); // Debug log
-                if (typeof img === 'string') {
-                  // Handle legacy string URLs
-                  const url = img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
-                  console.log('Featured Products - String URL:', url); // Debug log
-                  return url;
-                } else if (img && img.url) {
-                  // Handle Cloudinary objects - use URL directly
-                  console.log('Featured Products - Cloudinary URL:', img.url); // Debug log
-                  return img.url;
-                }
-                console.log('Featured Products - No valid image data'); // Debug log
-                return '';
-              }).filter(Boolean),
+              images: (p.images || []).map((img: string) =>
+                img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`
+              ),
               imageHints: lp.tags || [],
               sizes: p.size ? [p.size] : [],
-              colors: (p.ai_analysis?.image_analysis?.colors_detected || []).map((colorName: string) => ({
-                name: colorName,
-                hex: getColorHex(colorName)
-              })),
             };
           });
 

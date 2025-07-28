@@ -197,22 +197,7 @@ export default function ProductDetails({ product }: { product: Product }) {
 
             <Separator className="my-6 bg-gray-700" />
 
-            {/* Colors */}
-            {product.colors && product.colors.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-foreground">Color</h3>
-                <div className="mt-2 flex items-center space-x-3">
-                  {product.colors.map((color) => (
-                    <button
-                      key={color.name}
-                      className="h-8 w-8 rounded-full border border-black border-opacity-10 ring-2 ring-offset-1 ring-primary"
-                      style={{ backgroundColor: color.hex }}
-                      aria-label={color.name}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+
             
             {/* Sizes */}
             <div className="mt-8">

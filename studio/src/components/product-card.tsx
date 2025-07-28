@@ -15,10 +15,6 @@ import { cn } from '@/lib/utils';
 import { useWishlist } from '@/hooks/use-wishlist';
 
 export default function ProductCard({ product, className }: { product: Product, className?: string }) {
-  console.log('ProductCard - Product data:', product);
-  console.log('ProductCard - Images array:', product.images);
-  console.log('ProductCard - First image URL:', product.images[0]);
-
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { addToWishlist, removeFromWishlist, isItemInWishlist } = useWishlist();
@@ -76,14 +72,7 @@ export default function ProductCard({ product, className }: { product: Product, 
                   height={500}
                   className="object-cover w-full h-auto aspect-[4/5]"
                   data-ai-hint={product.imageHints[0]}
-                  onError={(e) => {
-                    console.log('ProductCard - Image load error for:', product.images[0]);
-                    console.log('ProductCard - Error event:', e);
-                    setImageError(true);
-                  }}
-                  onLoad={() => {
-                    console.log('ProductCard - Image loaded successfully:', product.images[0]);
-                  }}
+                  onError={() => setImageError(true)}
                 />
               )}
             </Link>
@@ -109,14 +98,7 @@ export default function ProductCard({ product, className }: { product: Product, 
                     {product.name}
                 </Link>
             </h3>
-            <div className="flex items-center space-x-1 pt-1">
-                {product.colors.slice(0, 4).map((color) => (
-                <span key={color.name} className="block h-3 w-3 rounded-full border border-neutral-300" style={{ backgroundColor: color.hex }} title={color.name} />
-                ))}
-                {product.colors.length > 4 && (
-                <span className="text-xs text-muted-foreground">+ {product.colors.length - 4}</span>
-                )}
-            </div>
+
             <div className="flex items-baseline flex-wrap gap-x-2 pt-1">
                 <p className="text-sm font-bold">{product.price}</p>
                 <p className="text-xs text-muted-foreground line-through">{product.originalPrice}</p>

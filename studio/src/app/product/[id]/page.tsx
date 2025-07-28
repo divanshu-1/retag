@@ -8,7 +8,6 @@ import { useUser } from '@/hooks/use-user';
 import type { View } from '@/app/page';
 import type { Category } from '@/lib/products';
 import { apiRequest } from '@/lib/api';
-import { getConsistentColors, getColorHex } from '@/lib/product-colors';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   // All hooks at the top!
@@ -39,29 +38,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               price: `₹${lp.price || ''}`,
               originalPrice: lp.mrp ? `₹${lp.mrp}` : '',
               condition: backendProduct.ai_analysis?.image_analysis?.quality || '',
-              images: (backendProduct.images || []).map((img: any) => {
-                console.log('Product Details - Raw image data:', img); // Debug log
-                if (typeof img === 'string') {
-                  // Handle legacy string URLs
-                  const url = img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
-                  console.log('Product Details - String URL:', url); // Debug log
-                  return url;
-                } else if (img && img.url) {
-                  // Handle Cloudinary objects - use URL directly
-                  console.log('Product Details - Cloudinary URL:', img.url); // Debug log
-                  return img.url;
-                }
-                console.log('Product Details - No valid image data'); // Debug log
-                return '';
-              }).filter(Boolean),
+              images: (backendProduct.images || []).map((img: string) => img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`),
               imageHints: lp.tags || [],
               sizes: backendProduct.size ? [backendProduct.size] : [],
-              colors: (backendProduct.ai_analysis?.image_analysis?.colors_detected || []).length > 0
-                ? (backendProduct.ai_analysis.image_analysis.colors_detected || []).map((colorName: string) => ({
-                    name: colorName,
-                    hex: getColorHex(colorName)
-                  }))
-                : getConsistentColors(backendProduct._id, backendProduct.category || 'Other', backendProduct.article || '', backendProduct.brand || ''),
             });
           } else {
             setProduct(null);

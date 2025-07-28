@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { apiRequest } from '@/lib/api';
 import type { Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
-import { getColorHex } from '@/lib/product-colors';
 
 
 export default function NewArrivals() {
@@ -54,10 +53,6 @@ export default function NewArrivals() {
               }).filter(Boolean),
               imageHints: lp.tags || [],
               sizes: p.size ? [p.size] : [],
-              colors: (p.ai_analysis?.image_analysis?.colors_detected || []).map((colorName: string) => ({
-                name: colorName,
-                hex: getColorHex(colorName)
-              })),
             };
           });
           setProducts(mapped as Product[]);
