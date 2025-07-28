@@ -685,8 +685,6 @@ export default function CheckoutPage() {
                         <div className="font-medium text-sm line-clamp-2">{item.name}</div>
                         <div className="text-xs text-muted-foreground mt-1">
                           {item.sizes && item.sizes.length > 0 && <span>UK {item.sizes[0]}</span>}
-                          {item.colors && item.colors.length > 0 && item.sizes && item.sizes.length > 0 && <span> • </span>}
-                          {item.colors && item.colors.length > 0 && <span>{item.colors.map(c => c.name).join(', ')}</span>}
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-xs text-muted-foreground">Quantity : {item.quantity}</span>

@@ -43,8 +43,13 @@ export const metadata: Metadata = {
   title: 'ReTag Marketplace',
   description: 'Sell Smart. Buy Better. ReTag. India’s smartest thrift store – quality-checked & AI-priced.',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' }
+    ],
     apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico',
   },
 };
 
@@ -71,7 +76,9 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
         {/* Favicon links for maximum browser compatibility */}
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
+        <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
         {/* Font preloading for performance */}
