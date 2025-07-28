@@ -261,6 +261,30 @@ router.put('/profile', passport.authenticate('jwt', { session: false }), async (
   }
 });
 
+// Generate temporary QR code token for auto-login
+router.post('/generate-qr-token', passport.authenticate('jwt', { session: false }), (req, res) => {
+  try {
+    const user = req.user as any;
+    const payload = {
+      id: user._id,
+      displayName: user.displayName,
+      email: user.email,
+      qr: true // Mark as QR token for tracking
+    };
+
+    // Generate a temporary token valid for 1 hour
+    const qrToken = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1h' });
+
+    res.json({
+      qrToken,
+      expiresIn: 3600 // 1 hour in seconds
+    });
+  } catch (error) {
+    console.error('Error generating QR token:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Local signup
 router.post('/signup', async (req, res) => {
   const { email, password, displayName } = req.body;
