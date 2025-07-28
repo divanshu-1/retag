@@ -211,11 +211,17 @@ export default function Header({
                     <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => { onNavigate?.('cart'); setIsMobileMenuOpen(false); }}>
                       <ShoppingBag /> Your Bag ({cartItemCount})
                     </Button>
-                    <LoginButton>
+                    {isLoggedIn ? (
+                      <Button variant="secondary" className="w-full justify-start gap-2" onClick={() => { onNavigate?.('account'); setIsMobileMenuOpen(false); }}>
+                        <User /> Profile
+                      </Button>
+                    ) : (
+                      <LoginButton>
                         <Button variant="secondary" className="w-full justify-start gap-2">
                           <User /> Login
                         </Button>
                       </LoginButton>
+                    )}
                   </div>
                 </div>
               </SheetContent>
