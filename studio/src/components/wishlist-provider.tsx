@@ -71,16 +71,11 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
   }, []);
 
   const removeFromWishlist = useCallback((productId: string) => {
-    console.log('WishlistProvider: Removing item with ID:', productId);
-    console.log('Current wishlist items:', state.items.map(item => item.id));
     dispatch({ type: "REMOVE_ITEM", payload: productId });
-    console.log('Dispatch called for REMOVE_ITEM');
-  }, [state.items]);
+  }, []);
   
   const isItemInWishlist = useCallback((productId: string) => {
-    const result = state.items.some((item) => item.id === productId);
-    console.log('isItemInWishlist check for ID:', productId, 'Result:', result, 'Current items:', state.items.map(item => item.id));
-    return result;
+    return state.items.some((item) => item.id === productId);
   }, [state.items]);
 
   return (

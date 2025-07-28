@@ -29,13 +29,9 @@ export const wishlistReducer = (state: WishlistState, action: WishlistAction): W
       };
     }
     case "REMOVE_ITEM":
-      console.log('WishlistReducer: Removing item with ID:', action.payload);
-      console.log('Items before removal:', state.items.map(item => item.id));
-      const filteredItems = state.items.filter((item) => item.id !== action.payload);
-      console.log('Items after removal:', filteredItems.map(item => item.id));
       return {
         ...state,
-        items: filteredItems,
+        items: state.items.filter((item) => item.id !== action.payload),
       };
     case "CLEAR_WISHLIST":
       return {
