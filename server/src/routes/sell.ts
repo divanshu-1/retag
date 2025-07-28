@@ -373,8 +373,7 @@ router.post('/admin/review/:id', passport.authenticate('jwt', { session: false }
           product.ai_analysis.image_analysis.quality,
           ...product.ai_analysis.image_analysis.features
         ].filter((tag): tag is string => Boolean(tag)),
-        listed_at: new Date(),
-        mainCategory
+        listed_at: new Date()
       };
     } else {
       product.status = 'rejected';
