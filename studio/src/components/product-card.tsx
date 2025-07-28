@@ -98,7 +98,7 @@ export default function ProductCard({ product, className }: { product: Product, 
                     {product.name}
                 </Link>
             </h3>
-            <div className="flex items-baseline flex-wrap gap-x-2 pt-2">
+            <div className="flex items-baseline flex-wrap gap-x-2 pt-1">
                 <p className="text-sm font-bold">{product.price}</p>
                 {product.originalPrice && discount > 0 && (
                     <>
