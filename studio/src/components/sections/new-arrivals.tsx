@@ -34,7 +34,7 @@ export default function NewArrivals() {
               category: lp.category || '',
               mainCategory: lp.mainCategory || p.mainCategory || 'Unisex',
               price: `₹${lp.price || ''}`,
-              originalPrice: '',
+              originalPrice: lp.mrp ? `₹${lp.mrp}` : '',
               condition: p.ai_analysis?.image_analysis?.quality || '',
               images: (p.images || []).map((img: any) => {
                 console.log('New Arrivals - Raw image data:', img); // Debug log

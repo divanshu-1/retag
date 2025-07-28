@@ -98,12 +98,13 @@ export default function ProductCard({ product, className }: { product: Product, 
                     {product.name}
                 </Link>
             </h3>
-
-            <div className="flex items-baseline flex-wrap gap-x-2 pt-1">
+            <div className="flex items-baseline flex-wrap gap-x-2 pt-2">
                 <p className="text-sm font-bold">{product.price}</p>
-                <p className="text-xs text-muted-foreground line-through">{product.originalPrice}</p>
-                {discount > 0 && (
-                    <p className="text-sm font-semibold text-primary">{discount}% OFF</p>
+                {product.originalPrice && discount > 0 && (
+                    <>
+                        <p className="text-xs text-muted-foreground line-through">{product.originalPrice}</p>
+                        <p className="text-xs font-semibold text-green-600">{discount}% OFF</p>
+                    </>
                 )}
             </div>
           </div>
