@@ -304,7 +304,8 @@ router.get('/admin/pending', passport.authenticate('jwt', { session: false }), a
     return res.status(403).json({ message: 'Forbidden: Admins only' });
   }
   try {
-    const products = await Product.find({ status: 'pending' })
+    // Get products that are approved (user accepted offer) and ready for admin review
+    const products = await Product.find({ status: 'approved' })
       .populate('seller', 'name email phone paymentAccount')
       .sort({ created_at: -1 });
 
