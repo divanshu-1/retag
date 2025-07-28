@@ -15,6 +15,10 @@ import { cn } from '@/lib/utils';
 import { useWishlist } from '@/hooks/use-wishlist';
 
 export default function ProductCard({ product, className }: { product: Product, className?: string }) {
+  console.log('ProductCard - Product data:', product);
+  console.log('ProductCard - Images array:', product.images);
+  console.log('ProductCard - First image URL:', product.images[0]);
+
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { addToWishlist, removeFromWishlist, isItemInWishlist } = useWishlist();
@@ -72,7 +76,14 @@ export default function ProductCard({ product, className }: { product: Product, 
                   height={500}
                   className="object-cover w-full h-auto aspect-[4/5]"
                   data-ai-hint={product.imageHints[0]}
-                  onError={() => setImageError(true)}
+                  onError={(e) => {
+                    console.log('ProductCard - Image load error for:', product.images[0]);
+                    console.log('ProductCard - Error event:', e);
+                    setImageError(true);
+                  }}
+                  onLoad={() => {
+                    console.log('ProductCard - Image loaded successfully:', product.images[0]);
+                  }}
                 />
               )}
             </Link>
