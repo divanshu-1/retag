@@ -1,1 +1,5 @@
-keys/google-vision.json 
+keys/google-vision.json
+scripts/
+*.env
+.env.local
+.env.production
