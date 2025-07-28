@@ -150,7 +150,7 @@ export default function CheckoutPage() {
         const token = localStorage.getItem('token');
         console.log('Token for address fetch:', token ? 'Present' : 'Missing');
 
-        const res = await fetch('/api/user/addresses', {
+        const res = await fetch('/api/api/user/addresses', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -207,7 +207,7 @@ export default function CheckoutPage() {
     const token = localStorage.getItem('token');
     if (isEdit && form._id) {
       // Update address
-      const res = await fetch(`/api/user/addresses/${form._id}`, {
+      const res = await fetch(`/api/api/user/addresses/${form._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
       }
     } else {
       // Add new address
-      const res = await fetch('/api/user/addresses', {
+      const res = await fetch('/api/api/user/addresses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(form),

@@ -29,9 +29,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
   SheetFooter,
-  SheetClose,
 } from "@/components/ui/sheet"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useUser } from '@/hooks/use-user';
@@ -188,29 +186,21 @@ export default function ProductList({ category, onBackToCategories, onNavigate }
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [backendProducts, setBackendProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    setLoading(true);
-    setError('');
     const endpoint = isAdmin
       ? '/sell/admin/listed'
       : '/sell/listed-public';
-    const fetchOptions = isAdmin
-      ? {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        }
-      : {
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        };
+    const headers: Record<string, string> = {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    };
+
+    if (isAdmin) {
+      headers['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
+    }
+
+    const fetchOptions = { headers };
     apiRequest(endpoint, fetchOptions)
       .then(res => res.json())
       .then(data => {
@@ -266,12 +256,9 @@ export default function ProductList({ category, onBackToCategories, onNavigate }
         } else {
           setBackendProducts([]);
         }
-        setLoading(false);
       })
       .catch(() => {
-        setError('Failed to load products from backend.');
         setBackendProducts([]);
-        setLoading(false);
       });
   }, [category, isAdmin]);
 
