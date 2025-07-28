@@ -210,8 +210,8 @@ const nextConfig: NextConfig = {
       {
         source: '/api/:path*',                    // Frontend API path pattern
         destination: process.env.NODE_ENV === 'production'
-          ? 'https://your-backend-url.railway.app/api/:path*'  // TODO: Replace with actual production backend URL
-          : 'http://localhost:8080/api/:path*',   // Local development backend
+          ? 'https://retag-1n7d.onrender.com/:path*'  // Production backend URL
+          : 'http://localhost:8080/:path*',   // Local development backend
       },
     ];
   },
