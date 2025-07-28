@@ -27,7 +27,14 @@ interface SellerRequest {
   };
   status: string;
   created_at: string;
-  images?: string[];
+  images?: Array<{
+    url: string;
+    public_id: string;
+    width: number;
+    height: number;
+    format: string;
+    bytes: number;
+  } | string>; // Support both Cloudinary objects and legacy strings
   listed_product?: {
     price?: number;
     mrp?: number;
@@ -449,7 +456,12 @@ export default function AdminDashboard() {
               <div className="flex flex-col gap-6">
                 {filteredRequests.map(req => {
                   const firstImage = req.images && req.images.length > 0 ? req.images[0] : null;
-                  const imageUrl = firstImage && typeof firstImage === 'string' ? (firstImage.startsWith('http') ? firstImage : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${firstImage.replace(/^uploads\//, 'uploads/')}`) : null;
+                  // Handle both Cloudinary objects and legacy string paths
+                  const imageUrl = firstImage
+                    ? (typeof firstImage === 'string'
+                        ? (firstImage.startsWith('http') ? firstImage : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${firstImage.replace(/^uploads\//, 'uploads/')}`)
+                        : firstImage.url) // Use Cloudinary URL directly
+                    : null;
                   const aiPrice = req.ai_analysis?.price_suggestion?.suggested_price || '';
                   return (
                     <div key={req._id} className="p-4 sm:p-6 rounded-lg bg-muted flex flex-col gap-4">
@@ -628,7 +640,11 @@ export default function AdminDashboard() {
                 {listed.map(req => {
                   // Show up to 4 images
                   const images = (req.images || []).slice(0, 4);
-                  const imageUrls = images.map(img => typeof img === 'string' && img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${typeof img === 'string' ? img.replace(/^uploads\//, 'uploads/') : img}`);
+                  const imageUrls = images.map(img =>
+                    typeof img === 'string'
+                      ? (img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`)
+                      : img.url // Use Cloudinary URL directly
+                  );
                   const caption = req.ai_analysis?.image_analysis?.caption || '';
                   const price = req.listed_product?.price || req.admin_review?.final_price || 0;
                   const mrp = req.listed_product?.mrp || req.admin_review?.mrp;
