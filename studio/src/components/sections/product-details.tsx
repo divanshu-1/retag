@@ -23,7 +23,6 @@ import {
 
 export default function ProductDetails({ product }: { product: Product }) {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [forceUpdate, setForceUpdate] = useState(0);
   const router = useRouter();
   const { addToCart, items } = useCart();
   const { toast } = useToast();
@@ -77,32 +76,26 @@ export default function ProductDetails({ product }: { product: Product }) {
     const productToAdd = {
       ...product,
       sizes: [selectedSize],
-      color: product.colors && product.colors.length > 0 ? product.colors[0].name : 'Default',
     };
 
-    console.log('Before: isInWishlist =', isInWishlist);
-    console.log('Product ID:', product.id);
+    // If item is in wishlist, remove it when adding to cart
+    if (isInWishlist) {
+      removeFromWishlist(product.id);
+    }
 
-    // Force remove from wishlist regardless of current state
-    removeFromWishlist(product.id);
-    console.log('Called removeFromWishlist with ID:', product.id);
-
-    // Force a re-render to update the UI
-    setForceUpdate(prev => prev + 1);
-
-    // Then add to cart
+    // Add to cart
     addToCart(productToAdd);
 
     // Show appropriate message
     if (isInWishlist) {
       toast({
-          title: 'Moved to your bag!',
-          description: `${product.name} (Size: ${selectedSize}) has been moved from your wishlist to your bag.`,
+        title: 'Moved to your bag!',
+        description: `${product.name} (Size: ${selectedSize}) has been moved from your wishlist to your bag.`,
       });
-  } else {
+    } else {
       toast({
-          title: 'Added to your bag!',
-          description: `${product.name} (Size: ${selectedSize}) is now in your bag.`,
+        title: 'Added to your bag!',
+        description: `${product.name} (Size: ${selectedSize}) is now in your bag.`,
       });
     }
 };
