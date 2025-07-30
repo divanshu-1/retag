@@ -104,8 +104,6 @@ export default function PaymentView({ onNavigate }: { onNavigate: (view: View) =
               <div className="flex items-center justify-center py-8">
                 <Loading variant="inline" size="md" message="Loading payment details..." />
               </div>
-            ) : paymentAccount ? (">Loading payment account...</p>
-              </div>
             ) : paymentAccount && !isEditingPayment ? (
               // Display existing payment account
               <div className="space-y-6">
