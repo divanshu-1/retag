@@ -1,8 +1,10 @@
-# 🛍️ ReTag Marketplace
+
 
 <div align="center">
 
-![ReTag Logo](https://via.placeholder.com/200x80/000000/FFFFFF?text=ReTag)
+<h1 align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Inter&weight=700&size=50&duration=1&pause=1000&color=25094f&center=true&vCenter=true&width=600&height=70&lines=🛍️+ReTag+Marketplace" alt="ReTag Marketplace">
+</h1>
 
 **India's Smartest Thrift Store**  
 *Sell Smart. Buy Better. ReTag.*
@@ -13,8 +15,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/)
 
-[🚀 Live Demo](https://retag-beta.vercel.app) • [📖 Documentation](#documentation) • [🤝 Contributing](#contributing)
-
+[🚀 Live Demo](https://retag-beta.vercel.app) 
 </div>
 
 ---
@@ -176,8 +177,6 @@ graph TB
 
 ### 💳 Payment & Orders
 - Secure Razorpay integration
-- Order tracking and management
-- Email notifications
 - Admin order oversight
 
 ### 👨‍💼 Admin Dashboard
@@ -244,23 +243,6 @@ graph TB
 - Some older browsers may have compatibility issues
 - Mobile app is in development
 
-## 📚 Documentation
-
-- [API Documentation](docs/API.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-
-## 🏆 Awards & Recognition
-
-- **Best Internship Project** - TeqMavens 2024
-- **Innovation in AI Integration** - Internal Recognition
-- **Sustainable Technology Award** - Environmental Impact
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
 ### Development Workflow
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -268,28 +250,10 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Team
-
-- **Developer:** [Divanshu Arora](https://github.com/divanshu-1)
-- **Mentor:** Mr. Ajay Rana (Senior Project Manager, TeqMavens)
-- **Organization:** [TeqMavens Pvt. Ltd.](https://www.teqmavens.com/)
-
-## 🙏 Acknowledgments
-
-- TeqMavens Pvt. Ltd. for internship opportunity and guidance
-- Google Cloud Platform for AI services
-- Open source community for amazing tools and libraries
-
 ## 📞 Contact
 
-- **Email:** [your-email@example.com](mailto:your-email@example.com)
-- **LinkedIn:** [Your LinkedIn Profile](https://linkedin.com/in/your-profile)
-- **Portfolio:** [Your Portfolio Website](https://your-portfolio.com)
-
+- **Email:** [divanshu.arora.dev@gmail.com](mailto:divanshu.arora.dev@gmail.com)
+- **LinkedIn:** [Divanshu Arora](www.linkedin.com/in/divanshu-arora)
 ---
 
 <div align="center">
