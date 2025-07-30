@@ -212,8 +212,8 @@ export default function Header({
                       <ShoppingBag /> Your Bag ({cartItemCount})
                     </Button>
                     {isLoggedIn ? (
-                      <Button variant="secondary" className="w-full justify-start gap-2" onClick={() => { onNavigate?.('account'); setIsMobileMenuOpen(false); }}>
-                        <User /> Profile
+                      <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => { onNavigate?.('account'); setIsMobileMenuOpen(false); }}>
+                        <User /> Account
                       </Button>
                     ) : (
                       <LoginButton>
