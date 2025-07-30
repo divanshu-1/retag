@@ -1,8 +1,10 @@
-# 🛍️ ReTag Marketplace
+
 
 <div align="center">
 
-![ReTag Logo](https://via.placeholder.com/200x80/000000/FFFFFF?text=ReTag)
+<h1 align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Inter&weight=700&size=50&duration=1&pause=1000&color=25094f&center=true&vCenter=true&width=600&height=70&lines=🛍️+ReTag+Marketplace" alt="ReTag Marketplace">
+</h1>
 
 **India's Smartest Thrift Store**  
 *Sell Smart. Buy Better. ReTag.*
@@ -175,8 +177,6 @@ graph TB
 
 ### 💳 Payment & Orders
 - Secure Razorpay integration
-- Order tracking and management
-- Email notifications
 - Admin order oversight
 
 ### 👨‍💼 Admin Dashboard
@@ -252,10 +252,8 @@ graph TB
 
 ## 📞 Contact
 
-- **Email:** [your-email@example.com](mailto:your-email@example.com)
-- **LinkedIn:** [Your LinkedIn Profile](https://linkedin.com/in/your-profile)
-- **Portfolio:** [Your Portfolio Website](https://your-portfolio.com)
-
+- **Email:** [divanshu.arora.dev@gmail.com](mailto:divanshu.arora.dev@gmail.com)
+- **LinkedIn:** [Divanshu Arora](www.linkedin.com/in/divanshu-arora)
 ---
 
 <div align="center">
