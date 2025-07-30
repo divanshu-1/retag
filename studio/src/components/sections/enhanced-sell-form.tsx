@@ -43,6 +43,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { usePaymentAccount } from '@/hooks/use-payment-account';
 import type { Address } from '@/components/user-provider';
+import { Loading } from '@/components/ui/loading';
 import { DesktopUploadRestrictionModal } from '@/components/ui/desktop-upload-restriction-modal';
 import { LoginButton } from '@/components/auth/login-button';
 import { apiRequest, apiRequestJson } from '@/lib/api';
@@ -683,8 +684,7 @@ export default function EnhancedSellForm() {
       <CardContent>
         {isAnalyzing ? (
           <div className="text-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p>Analyzing your item with AI...</p>
+            <Loading variant="default" size="md" message="Analyzing your item with AI..." />
             <Progress value={33} className="mt-4" />
           </div>
         ) : aiAnalysis ? (

@@ -3,6 +3,7 @@ import { Button } from './button';
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useUser } from '@/hooks/use-user';
+import { ButtonLoading } from '@/components/ui/loading';
 
 interface DesktopUploadRestrictionModalProps {
   open: boolean;
@@ -81,7 +82,7 @@ export function DesktopUploadRestrictionModal({ open, onClose, onInstall }: Desk
             <span className="text-sm font-medium">Scan to continue on mobile:</span>
             <div className="w-32 h-32 flex items-center justify-center rounded-md mb-2 bg-white p-2">
               {isGeneratingToken ? (
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <ButtonLoading size="md" />
               ) : (
                 <QRCodeSVG value={sellLink || `${window.location.origin}/#sell`} size={112} />
               )}

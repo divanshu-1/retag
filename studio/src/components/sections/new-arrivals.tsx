@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { apiRequest } from '@/lib/api';
 import type { Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
+import { Loading } from '@/components/ui/loading';
 
 
 export default function NewArrivals() {
@@ -72,10 +73,8 @@ export default function NewArrivals() {
           <div className="text-left mb-6">
             <h2 className="text-2xl font-bold tracking-tight text-white">New Arrivals</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="aspect-[4/5] bg-gray-200 animate-pulse rounded-lg" />
-            ))}
+          <div className="flex justify-center py-12">
+            <Loading variant="default" size="md" message="Loading new arrivals..." />
           </div>
         </div>
       </section>

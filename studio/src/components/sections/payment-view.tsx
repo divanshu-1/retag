@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CreditCard, Edit2, Trash2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { View } from '@/app/page';
+import { Loading } from '@/components/ui/loading';
 
 export default function PaymentView({ onNavigate }: { onNavigate: (view: View) => void }) {
   const { paymentAccount, savePaymentAccount, deletePaymentAccount, isLoading: isLoadingPaymentAccount } = usePaymentAccount();
@@ -101,8 +102,9 @@ export default function PaymentView({ onNavigate }: { onNavigate: (view: View) =
           <CardContent className="space-y-6">
             {isLoadingPaymentAccount ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="ml-3 text-sm text-muted-foreground">Loading payment account...</p>
+                <Loading variant="inline" size="md" message="Loading payment details..." />
+              </div>
+            ) : paymentAccount ? (">Loading payment account...</p>
               </div>
             ) : paymentAccount && !isEditingPayment ? (
               // Display existing payment account

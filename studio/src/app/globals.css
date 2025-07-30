@@ -23,6 +23,35 @@ body {
   overflow-x: hidden;
 }
 
+/* Custom Loading Animations */
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-loading-bar {
+  animation: loading-bar 2s ease-in-out infinite;
+}
+
+.animation-delay-75 {
+  animation-delay: 0.075s;
+}
+
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
 /* Mobile-specific fixes */
 @media (max-width: 768px) {
   body {

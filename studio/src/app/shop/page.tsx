@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { RedirectLoading } from '@/components/ui/loading';
 
 export default function ShopPage() {
   const router = useRouter();
@@ -11,12 +12,5 @@ export default function ShopPage() {
     router.replace('/#shop');
   }, [router]);
 
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-        <p className="mt-2 text-sm text-muted-foreground">Redirecting to shop...</p>
-      </div>
-    </div>
-  );
+  return <RedirectLoading destination="shop" message="Taking you to our amazing collection..." />;
 }

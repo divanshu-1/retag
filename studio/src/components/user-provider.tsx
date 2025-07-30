@@ -2,6 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Loading } from '@/components/ui/loading';
 
 export type Address = {
   _id?: string;
@@ -283,7 +284,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   if (isLoading) {
-    return <div>Loading...</div>; // You might want to show a proper loading spinner
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loading variant="fullscreen" message="Initializing ReTag..." />
+      </div>
+    );
   }
 
   return (

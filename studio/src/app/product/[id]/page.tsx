@@ -8,7 +8,8 @@ import { useUser } from '@/hooks/use-user';
 import type { View } from '@/app/page';
 import type { Category } from '@/lib/products';
 import { apiRequest } from '@/lib/api';
-
+import { getConsistentColors, getColorHex } from '@/lib/product-colors';
+import { Loading } from '@/components/ui/loading';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   // All hooks at the top!
@@ -39,19 +40,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               price: `₹${lp.price || ''}`,
               originalPrice: lp.mrp ? `₹${lp.mrp}` : '',
               condition: backendProduct.ai_analysis?.image_analysis?.quality || '',
-              images: (backendProduct.images || []).map((img: any) => {
-                if (typeof img === 'string') {
-                  // Handle legacy string URLs
-                  return img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`;
-                } else if (img && img.url) {
-                  // Handle Cloudinary objects - use URL directly
-                  return img.url;
-                }
-                return '';
-              }).filter(Boolean),
+              images: (backendProduct.images || []).map((img: string) => img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`),
               imageHints: lp.tags || [],
               sizes: backendProduct.size ? [backendProduct.size] : [],
-
+              colors: (backendProduct.ai_analysis?.image_analysis?.colors_detected || []).length > 0
+                ? (backendProduct.ai_analysis.image_analysis.colors_detected || []).map((colorName: string) => ({
+                    name: colorName,
+                    hex: getColorHex(colorName)
+                  }))
+                : getConsistentColors(backendProduct._id, backendProduct.category || 'Other', backendProduct.article || '', backendProduct.brand || ''),
             });
           } else {
             setProduct(null);
@@ -80,7 +77,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }, []);
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loading variant="default" size="lg" message="Loading product details..." />
+      </div>
+    );
   }
   if (!product) {
     return <div className="flex items-center justify-center min-h-screen text-2xl">404 | This page could not be found.</div>;

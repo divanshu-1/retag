@@ -11,6 +11,7 @@ import type { View } from '@/app/page';
 import { apiRequestJson } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { LoginButton } from '@/components/auth/login-button';
+import { Loading } from '@/components/ui/loading';
 
 interface OrderItem {
   productId: string;
@@ -179,10 +180,7 @@ export default function OrdersView({ onNavigate }: { onNavigate: (view: View) =>
       <div className="bg-[#18181b] min-h-full">
         <section className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
           <div className="container max-w-4xl mx-auto text-center py-16">
-            <Package className="h-24 w-24 text-foreground mx-auto animate-pulse" strokeWidth={1}/>
-            <h1 className="text-xl md:text-2xl font-semibold tracking-tight mt-6">
-              Loading your orders...
-            </h1>
+            <Loading variant="default" size="lg" message="Loading your orders..." />
           </div>
         </section>
         <div className="border-t border-border w-full" />
