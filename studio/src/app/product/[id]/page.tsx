@@ -8,7 +8,7 @@ import { useUser } from '@/hooks/use-user';
 import type { View } from '@/app/page';
 import type { Category } from '@/lib/products';
 import { apiRequest } from '@/lib/api';
-import { getConsistentColors, getColorHex } from '@/lib/product-colors';
+
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   // All hooks at the top!
@@ -22,16 +22,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
 
     // Fetch product from backend
-    console.log('Fetching product with ID:', resolvedParams.id);
     apiRequest('/sell/listed-public')
       .then(res => res.json())
       .then(data => {
-        console.log('API Response:', data);
         if (Array.isArray(data.products)) {
-          console.log('Available product IDs:', data.products.map((p: any) => p._id));
           const backendProduct = data.products.find((p: any) => p._id === resolvedParams.id);
           if (backendProduct) {
-            console.log('Found product:', backendProduct);
             // Map backend product to ProductDetails format
             const lp = backendProduct.listed_product || {};
             setProduct({
@@ -43,26 +39,19 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               price: `₹${lp.price || ''}`,
               originalPrice: lp.mrp ? `₹${lp.mrp}` : '',
               condition: backendProduct.ai_analysis?.image_analysis?.quality || '',
-              images: (backendProduct.images || []).map((img: any) =>
-                typeof img === 'string'
-                  ? (img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com'}/${img.replace(/^uploads\//, 'uploads/')}`)
-                  : img.url || img
-              ),
+              images: (backendProduct.images || []).map((img: string) => img.startsWith('http') ? img : `http://localhost:8080/${img.replace(/^uploads\//, 'uploads/')}`),
               imageHints: lp.tags || [],
               sizes: backendProduct.size ? [backendProduct.size] : [],
             });
           } else {
-            console.log('Product not found with ID:', resolvedParams.id);
             setProduct(null);
           }
         } else {
-          console.log('Invalid API response format:', data);
           setProduct(null);
         }
         setLoading(false);
       })
-      .catch((error) => {
-        console.error('API Error:', error);
+      .catch(() => {
         setProduct(null);
         setLoading(false);
       });
@@ -81,11 +70,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#18181b]">
-        <Loading variant="page" size="lg" message="Loading product details..." />
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   if (!product) {
     return <div className="flex items-center justify-center min-h-screen text-2xl">404 | This page could not be found.</div>;
