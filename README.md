@@ -13,8 +13,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/)
 
-[🚀 Live Demo](https://retag-beta.vercel.app) • [📖 Documentation](#documentation) • [🤝 Contributing](#contributing)
-
+[🚀 Live Demo](https://retag-beta.vercel.app) 
 </div>
 
 ---
@@ -244,45 +243,12 @@ graph TB
 - Some older browsers may have compatibility issues
 - Mobile app is in development
 
-## 📚 Documentation
-
-- [API Documentation](docs/API.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-
-## 🏆 Awards & Recognition
-
-- **Best Internship Project** - TeqMavens 2024
-- **Innovation in AI Integration** - Internal Recognition
-- **Sustainable Technology Award** - Environmental Impact
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
 ### Development Workflow
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Team
-
-- **Developer:** [Divanshu Arora](https://github.com/divanshu-1)
-- **Mentor:** Mr. Ajay Rana (Senior Project Manager, TeqMavens)
-- **Organization:** [TeqMavens Pvt. Ltd.](https://www.teqmavens.com/)
-
-## 🙏 Acknowledgments
-
-- TeqMavens Pvt. Ltd. for internship opportunity and guidance
-- Google Cloud Platform for AI services
-- Open source community for amazing tools and libraries
 
 ## 📞 Contact
 
