@@ -47,16 +47,16 @@ export function Loading({
         <div className="relative">
           {/* Animated background circles */}
           <div className="absolute inset-0 -m-4">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 animate-ping" />
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 animate-ping animation-delay-75" />
+            <div className="absolute inset-0 rounded-full bg-[#D6B899]/20 animate-ping" />
+            <div className="absolute inset-0 rounded-full bg-[#D6B899]/15 animate-ping animation-delay-75" />
           </div>
-          
+
           {/* Logo container with glow effect */}
           <div className="relative bg-background rounded-full p-6 shadow-2xl border border-border">
             <div className="relative">
               {/* Glowing background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-30 animate-pulse" />
-              
+              <div className="absolute inset-0 bg-[#D6B899] rounded-full blur-xl opacity-30 animate-pulse" />
+
               {/* Logo */}
               <div className="relative">
                 <Logo className={cn(sizeClasses.lg, "animate-pulse")} />
@@ -67,18 +67,18 @@ export function Loading({
         
         {/* Loading text with typing animation */}
         <div className="mt-8 text-center">
-          <h2 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-semibold text-[#D6B899]">
             ReTag Marketplace
           </h2>
           <p className="text-muted-foreground mt-2 animate-pulse">
             {message}
           </p>
-          
+
           {/* Loading dots animation */}
           <div className="flex justify-center mt-4 space-x-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
-            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce animation-delay-100" />
-            <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce animation-delay-200" />
+            <div className="w-2 h-2 bg-[#D6B899] rounded-full animate-bounce" />
+            <div className="w-2 h-2 bg-[#D6B899]/80 rounded-full animate-bounce animation-delay-100" />
+            <div className="w-2 h-2 bg-[#D6B899]/60 rounded-full animate-bounce animation-delay-200" />
           </div>
         </div>
       </div>
@@ -89,7 +89,7 @@ export function Loading({
     return (
       <div className={cn(containerClasses.inline, className)}>
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-sm opacity-30 animate-pulse" />
+          <div className="absolute inset-0 bg-[#D6B899] rounded-full blur-sm opacity-30 animate-pulse" />
           <Logo className={cn(sizeClasses[size], "animate-spin")} />
         </div>
         <span className="text-sm text-muted-foreground">{message}</span>
@@ -101,7 +101,7 @@ export function Loading({
     return (
       <div className={cn(containerClasses.minimal, className)}>
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-lg opacity-20 animate-pulse" />
+          <div className="absolute inset-0 bg-[#D6B899] rounded-full blur-lg opacity-20 animate-pulse" />
           <Logo className={cn(sizeClasses[size], "animate-pulse")} />
         </div>
       </div>
@@ -114,22 +114,22 @@ export function Loading({
       <div className="relative">
         {/* Animated rings */}
         <div className="absolute inset-0 -m-2">
-          <div className="absolute inset-0 rounded-full border-2 border-blue-500/30 animate-ping" />
-          <div className="absolute inset-0 rounded-full border-2 border-purple-500/30 animate-ping animation-delay-75" />
+          <div className="absolute inset-0 rounded-full border-2 border-[#D6B899]/30 animate-ping" />
+          <div className="absolute inset-0 rounded-full border-2 border-[#D6B899]/20 animate-ping animation-delay-75" />
         </div>
-        
+
         {/* Logo with glow */}
         <div className="relative bg-background rounded-full p-4 border border-border shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full animate-pulse" />
+          <div className="absolute inset-0 bg-[#D6B899]/10 rounded-full animate-pulse" />
           <Logo className={cn(sizeClasses[size], "relative animate-pulse")} />
         </div>
       </div>
-      
+
       <p className="text-muted-foreground mt-4 animate-pulse">{message}</p>
-      
+
       {/* Progress bar */}
       <div className="w-32 h-1 bg-muted rounded-full mt-2 overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-loading-bar" />
+        <div className="h-full bg-[#D6B899] rounded-full animate-loading-bar" />
       </div>
     </div>
   );
