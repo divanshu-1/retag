@@ -38,7 +38,7 @@ export function Loading({
     default: 'flex flex-col items-center justify-center p-8',
     minimal: 'flex items-center justify-center p-4',
     fullscreen: 'fixed inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-50',
-    inline: 'flex items-center space-x-2'
+    inline: 'flex flex-col items-center space-y-3'
   };
 
   if (variant === 'fullscreen') {
@@ -87,12 +87,12 @@ export function Loading({
 
   if (variant === 'inline') {
     return (
-      <div className={cn(containerClasses.inline, className)}>
+      <div className={cn("flex flex-col items-center space-y-3", className)}>
         <div className="relative">
           <div className="absolute inset-0 bg-[#D6B899] rounded-full blur-sm opacity-30 animate-pulse" />
           <Logo className={cn(sizeClasses[size], "animate-pulse")} />
         </div>
-        <span className="text-sm text-muted-foreground">{message}</span>
+        <span className="text-sm text-muted-foreground text-center">{message}</span>
       </div>
     );
   }
