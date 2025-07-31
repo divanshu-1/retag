@@ -6,6 +6,7 @@ import { Smartphone, Download, Star, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/hooks/use-user';
 import { useState, useEffect } from 'react';
+import { AppInstallQRModal } from '@/components/ui/app-install-qr-modal';
 
 const features = [
   {
@@ -29,6 +30,7 @@ export default function CommunityCTA() {
   const { isLoggedIn } = useUser();
   const [isMobile, setIsMobile] = useState(false);
   const [installPromptEvent, setInstallPromptEvent] = useState<any>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
 
   // Detect mobile device
   useEffect(() => {
@@ -64,9 +66,8 @@ export default function CommunityCTA() {
   };
 
   const handleContinueOnMobile = () => {
-    // For mobile users, show instructions or redirect to app store
+    // For mobile users, try PWA install directly
     if (isMobile) {
-      // Try to trigger PWA install or show instructions
       if (installPromptEvent) {
         handleInstallPWA();
       } else {
@@ -74,12 +75,8 @@ export default function CommunityCTA() {
         alert('To install ReTag: \n1. Tap the share button in your browser\n2. Select "Add to Home Screen"\n3. Enjoy the app experience!');
       }
     } else {
-      // For desktop, show PWA install option
-      if (installPromptEvent) {
-        handleInstallPWA();
-      } else {
-        alert('ReTag can be installed as an app! Look for the install icon in your browser address bar.');
-      }
+      // For desktop, show QR code modal
+      setShowQRModal(true);
     }
   };
 
@@ -126,6 +123,13 @@ export default function CommunityCTA() {
             </div>
           ))}
         </div>
+
+        {/* QR Code Modal */}
+        <AppInstallQRModal
+          open={showQRModal}
+          onClose={() => setShowQRModal(false)}
+          onInstall={installPromptEvent ? handleInstallPWA : undefined}
+        />
       </div>
     </section>
   );
