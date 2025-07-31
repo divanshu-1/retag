@@ -90,7 +90,7 @@ export function Loading({
       <div className={cn(containerClasses.inline, className)}>
         <div className="relative">
           <div className="absolute inset-0 bg-[#D6B899] rounded-full blur-sm opacity-30 animate-pulse" />
-          <Logo className={cn(sizeClasses[size], "animate-spin")} />
+          <Logo className={cn(sizeClasses[size], "animate-pulse")} />
         </div>
         <span className="text-sm text-muted-foreground">{message}</span>
       </div>
