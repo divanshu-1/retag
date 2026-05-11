@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -479,7 +479,7 @@ const OTPVerificationView = ({
     );
 };
 
-export function LoginButton({ children }: { children: React.ReactNode }) {
+export function LoginButton({ children }: { children?: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [view, setView] = useState<'email' | 'password' | 'forgot-password' | 'otp'>('email');
     const [email, setEmail] = useState('');
@@ -586,7 +586,11 @@ export function LoginButton({ children }: { children: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        {children}
+        {children ?? (
+          <Button variant="default">
+            Log in
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md p-8">
         <DialogTitle className="sr-only">

@@ -12,9 +12,11 @@
  * @author ReTag Team
  */
 
+import path from 'path';
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: path.resolve(__dirname),
   // Development settings - consider removing for production
   typescript: {
     ignoreBuildErrors: true,  // Skip TypeScript errors during build (not recommended for production)

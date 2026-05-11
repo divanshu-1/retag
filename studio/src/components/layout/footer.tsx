@@ -18,6 +18,10 @@ function isMobileDevice() {
   return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
 }
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+};
+
 export default function Footer({ 
     onNavigate, 
     onNavigateToCategory, 
@@ -34,7 +38,7 @@ export default function Footer({
   const [isOpen, setIsOpen] = useState(false);
   const footerRef = useRef<HTMLDivElement>(null);
   const [showInstallModal, setShowInstallModal] = useState(false);
-  const [installPromptEvent, setInstallPromptEvent] = useState(null);
+  const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     if (collapsible && isOpen && window.innerWidth < 768) {
@@ -46,9 +50,10 @@ export default function Footer({
   }, [isOpen, collapsible]);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (event) => {
-      event.preventDefault();
-      setInstallPromptEvent(event);
+    const handleBeforeInstallPrompt = (event: Event) => {
+      const promptEvent = event as BeforeInstallPromptEvent;
+      promptEvent.preventDefault();
+      setInstallPromptEvent(promptEvent);
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => {

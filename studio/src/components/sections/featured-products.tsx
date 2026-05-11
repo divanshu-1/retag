@@ -19,7 +19,6 @@ import { useState, useEffect } from 'react';
 import { apiRequest } from '@/lib/api';
 import type { Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
-import { getColorHex } from '@/lib/product-colors';
 
 /**
  * Featured Products Component

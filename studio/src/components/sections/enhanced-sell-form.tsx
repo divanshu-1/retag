@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import type { CheckedState } from '@radix-ui/react-checkbox';
 import Image from 'next/image';
 import {
   Card,
@@ -235,9 +236,10 @@ export default function EnhancedSellForm() {
     }
   };
 
-  const handleUseExistingAddressChange = (checked: boolean) => {
-    setUseExistingAddress(checked);
-    if (!checked) {
+  const handleUseExistingAddressChange = (checked: CheckedState) => {
+    const isChecked = checked === true;
+    setUseExistingAddress(isChecked);
+    if (!isChecked) {
       // Reset to user's profile phone if unchecking
       setPickupData(prev => ({
         ...prev,
@@ -976,7 +978,7 @@ export default function EnhancedSellForm() {
                   <Checkbox
                     id="save-default-pickup"
                     checked={saveAsDefaultPickup}
-                    onCheckedChange={setSaveAsDefaultPickup}
+                    onCheckedChange={(checked) => setSaveAsDefaultPickup(checked === true)}
                   />
                   <Label htmlFor="save-default-pickup" className="text-sm">
                     Save this address for future pickups
