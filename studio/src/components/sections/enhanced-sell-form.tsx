@@ -71,6 +71,14 @@ interface AIAnalysis {
     market_comparison: string;
     confidence_score: number;
     factors: string[];
+    pricing_source?: 'legacy_ai' | 'ml_service';
+    model_name?: string;
+    model_version?: string;
+    prediction_interval?: {
+      low?: number;
+      high?: number;
+    };
+    fallback_used?: boolean;
   };
   final_recommendation: string;
 }
@@ -314,8 +322,8 @@ export default function EnhancedSellForm() {
         setAiAnalysis(data.product.ai_analysis);
         setSubmissionId(data.product.id);
         toast({
-          title: "Analysis Complete",
-          description: "AI has analyzed your item and suggested a price!",
+          title: "ML Analysis Complete",
+          description: "ReTag generated a resale estimate with confidence and pricing rationale.",
         });
       } else {
         throw new Error(data.message || 'Failed to analyze item');
@@ -450,6 +458,29 @@ export default function EnhancedSellForm() {
       case 'poor': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getPricingSourceLabel = (source?: string) => {
+    return source === 'ml_service' ? 'ML Price Engine' : 'Legacy AI Fallback';
+  };
+
+  const getPricingSourceColor = (source?: string) => {
+    return source === 'ml_service'
+      ? 'bg-blue-100 text-blue-800'
+      : 'bg-amber-100 text-amber-800';
+  };
+
+  const getConfidenceLabel = (confidence: number) => {
+    if (confidence >= 0.8) return 'High confidence';
+    if (confidence >= 0.6) return 'Moderate confidence';
+    return 'Low confidence';
+  };
+
+  const formatCurrencyRange = (low?: number, high?: number) => {
+    if (typeof low === 'number' && typeof high === 'number') {
+      return `₹${low} - ₹${high}`;
+    }
+    return 'Range available after more training data';
   };
 
   const renderDetailsStep = () => (
@@ -665,7 +696,7 @@ export default function EnhancedSellForm() {
               className="flex-1 w-full sm:w-auto"
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              Analyze with AI
+                Analyze with ML
             </Button>
           </div>
         </div>
@@ -676,19 +707,57 @@ export default function EnhancedSellForm() {
   const renderAnalysisStep = () => (
     <Card className="bg-background">
       <CardHeader>
-        <CardTitle>AI Analysis Results</CardTitle>
+        <CardTitle>ML Pricing Results</CardTitle>
         <CardDescription>
-          Our AI has analyzed your item and suggested a price.
+          ReTag has analyzed your item and generated an explainable resale estimate.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {isAnalyzing ? (
           <div className="text-center py-8">
-            <Loading variant="default" size="md" message="Analyzing your item with AI..." />
+            <Loading variant="default" size="md" message="Running the ReTag ML pricing engine on your item..." />
             <Progress value={33} className="mt-4" />
           </div>
         ) : aiAnalysis ? (
           <div className="space-y-6">
+            <div className="rounded-xl border bg-primary/5 p-4 sm:p-5">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <Badge className={getPricingSourceColor(aiAnalysis.price_suggestion.pricing_source)}>
+                  {getPricingSourceLabel(aiAnalysis.price_suggestion.pricing_source)}
+                </Badge>
+                {aiAnalysis.price_suggestion.model_version && (
+                  <Badge variant="outline">{aiAnalysis.price_suggestion.model_version}</Badge>
+                )}
+                {aiAnalysis.price_suggestion.fallback_used && (
+                  <Badge className="bg-amber-100 text-amber-800">Fallback Used</Badge>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Recommended resale price</p>
+                  <p className="text-3xl font-bold text-primary">₹{aiAnalysis.price_suggestion.suggested_price}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Confidence</p>
+                  <p className="font-semibold">
+                    {getConfidenceLabel(aiAnalysis.price_suggestion.confidence_score)} ({(aiAnalysis.price_suggestion.confidence_score * 100).toFixed(0)}%)
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Expected range</p>
+                  <p className="font-semibold">
+                    {formatCurrencyRange(
+                      aiAnalysis.price_suggestion.prediction_interval?.low,
+                      aiAnalysis.price_suggestion.prediction_interval?.high
+                    )}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mt-4">
+                This estimate is generated from your uploaded photos, the item details you entered, and patterns learned from historical resale pricing data. A human admin still reviews the final listing price before publication.
+              </p>
+            </div>
+
             {/* Image Analysis */}
             <div className="border rounded-lg p-4">
               <h3 className="font-semibold mb-3">Image Analysis</h3>
@@ -724,13 +793,13 @@ export default function EnhancedSellForm() {
 
             {/* Price Suggestion */}
             <div className="border rounded-lg p-4">
-              <h3 className="font-semibold mb-3">Price Suggestion</h3>
+              <h3 className="font-semibold mb-3">Pricing Explanation</h3>
               <div className="text-center mb-4">
                 <div className="text-3xl font-bold text-primary">
                   ₹{aiAnalysis.price_suggestion.suggested_price}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Confidence: {(aiAnalysis.price_suggestion.confidence_score * 100).toFixed(0)}%
+                  {getConfidenceLabel(aiAnalysis.price_suggestion.confidence_score)} · {(aiAnalysis.price_suggestion.confidence_score * 100).toFixed(0)}% confidence
                 </div>
               </div>
               <div className="space-y-3">
@@ -749,6 +818,10 @@ export default function EnhancedSellForm() {
                       <Badge key={index} variant="outline">{factor}</Badge>
                     ))}
                   </div>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Final Recommendation</p>
+                  <p className="text-sm font-medium">{aiAnalysis.final_recommendation}</p>
                 </div>
               </div>
             </div>

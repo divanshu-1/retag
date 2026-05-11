@@ -1,0 +1,21 @@
+article,brand,category,gender,size,age,wear_count,damage,description,quality,condition_score,features,price
+Jacket,Nike,Outerwear,men,L,1-2,2,,Lightweight running jacket in very good condition,good,8,jacket|running,1499
+Sneakers,Adidas,Footwear,men,9,1-2,3,minor scuff,White sneakers with mild sole wear,fair,6,sneakers|sports,1399
+Jeans,Levi,Bottoms,men,32,2-3,4,,Classic blue denim jeans with slim fit,good,7,denim|casual,1199
+Dress,Zara,Dresses,women,M,<1,1,,Floral midi dress worn once,excellent,9,dress|floral,1699
+Hoodie,Puma,Tops,unisex,L,1-2,3,,Black cotton hoodie with logo print,good,8,hoodie|casual,1299
+Handbag,Guess,Bags,women,One Size,2-3,5,minor fade,Tan handbag with visible fading on handle,fair,5,bag|fashion,999
+Blazer,H&M,Formal,women,M,1-2,2,,Office blazer with clean lining and buttons,good,7,blazer|formal,1099
+Sandals,Bata,Footwear,women,6,>3,6,strap wear,Comfort sandals with used straps,fair,4,sandals|daily,499
+Kurti,Biba,Tops,women,L,1-2,2,,Printed kurti with bright colors and soft fabric,good,8,ethnic|kurti,899
+Shirt,Arrow,Formal,men,40,2-3,3,,Formal shirt suitable for office wear,good,7,shirt|formal,799
+Sweater,Zara,Outerwear,women,S,<1,1,,Warm knit sweater in excellent condition,excellent,9,sweater|winter,1499
+Backpack,Wildcraft,Bags,unisex,One Size,1-2,4,,Durable backpack with multiple compartments,good,7,bag|travel,899
+Skirt,H&M,Bottoms,women,M,2-3,4,,Pleated skirt with light wear signs,good,6,skirt|casual,649
+Boots,Timberland,Footwear,men,10,1-2,2,,Leather boots with sturdy sole,excellent,9,boots|leather,2499
+Tshirt,Nike,Tops,men,M,2-3,5,small stain,Dri fit t-shirt with one light stain,fair,5,tshirt|sports,599
+Saree,Manyavar,Formal,women,Free,1-2,1,,Festive saree with rich detailing,excellent,10,ethnic|saree,2199
+Joggers,Adidas,Bottoms,men,L,<1,1,,Track joggers with tapered fit,excellent,9,joggers|sports,1299
+Cardigan,Mango,Outerwear,women,M,2-3,3,,Soft cardigan for layering outfits,good,7,cardigan|winter,999
+Heels,Catwalk,Footwear,women,5,1-2,2,,Party heels with glossy finish,good,8,heels|party,1199
+Kurta Set,W,Tops,women,L,<1,1,,Ethnic kurta set with dupatta,excellent,9,ethnic|set,1899

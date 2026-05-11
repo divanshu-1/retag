@@ -58,6 +58,14 @@ export interface IProduct extends Document {
       market_comparison: string;      // Market analysis
       confidence_score: number;       // AI confidence (0-100)
       factors: string[];              // Factors affecting price
+      pricing_source?: 'legacy_ai' | 'ml_service'; // Which engine generated the price
+      model_name?: string;            // ML model identifier when applicable
+      model_version?: string;         // Version of the pricing model
+      prediction_interval?: {
+        low?: number;                 // Lower bound of the expected price range
+        high?: number;                // Upper bound of the expected price range
+      };
+      fallback_used?: boolean;        // Whether fallback logic was used
     };
     final_recommendation: string;     // Overall AI recommendation
   };
@@ -190,7 +198,18 @@ const ProductSchema = new Schema<IProduct>({
         max: 1, 
         required: true 
       },
-      factors: [{ type: String }]
+      factors: [{ type: String }],
+      pricing_source: {
+        type: String,
+        enum: ['legacy_ai', 'ml_service']
+      },
+      model_name: { type: String },
+      model_version: { type: String },
+      prediction_interval: {
+        low: { type: Number },
+        high: { type: Number }
+      },
+      fallback_used: { type: Boolean }
     },
     final_recommendation: { type: String, required: true }
   },

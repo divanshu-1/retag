@@ -20,6 +20,14 @@ export interface PriceSuggestion {
   market_comparison: string;
   confidence_score: number; // 0-1
   factors: string[];
+  pricing_source?: 'legacy_ai' | 'ml_service';
+  model_name?: string;
+  model_version?: string;
+  prediction_interval?: {
+    low?: number;
+    high?: number;
+  };
+  fallback_used?: boolean;
 }
 
 export interface ProductAnalysis {
@@ -229,7 +237,9 @@ class GeminiService {
           reasoning: parsed.reasoning || 'Based on market analysis',
           market_comparison: parsed.market_comparison || 'Comparable to similar items',
           confidence_score: parsed.confidence_score || 0.7,
-          factors: parsed.factors || ['brand', 'condition', 'market demand']
+          factors: parsed.factors || ['brand', 'condition', 'market demand'],
+          pricing_source: 'legacy_ai',
+          fallback_used: false
         };
       }
     } catch (error) {
@@ -254,7 +264,9 @@ class GeminiService {
       reasoning: 'Based on standard market rates for second-hand clothing (typically 40–60% of new price)',
       market_comparison: 'Similar to other pre-owned items in the market',
       confidence_score: 0.6,
-      factors: ['brand reputation', 'general condition', 'market demand']
+      factors: ['brand reputation', 'general condition', 'market demand'],
+      pricing_source: 'legacy_ai',
+      fallback_used: true
     };
   }
 }
@@ -265,6 +277,32 @@ export class AIService {
 
   constructor() {
     this.gemini = new GeminiService();
+  }
+
+  async analyzeImage(imageBase64: string, userCategory: string): Promise<ImageAnalysis> {
+    let detectedBrand: string | null = null;
+
+    try {
+      const hfResult = await this.analyzeImageWithHuggingFace(imageBase64);
+      const label = hfResult?.[0]?.label || 'unknown';
+      const score = hfResult?.[0]?.score || 0.5;
+      detectedBrand = await detectBrandWithOCR(imageBase64);
+
+      return {
+        caption: `Detected as: ${label}`,
+        quality: score > 0.8 ? 'excellent' : score > 0.6 ? 'good' : score > 0.4 ? 'fair' : 'poor',
+        category: userCategory,
+        brand_detected: detectedBrand || undefined,
+        condition_score: Math.round(score * 10),
+        features: [label]
+      };
+    } catch (err) {
+      return this.localImageAnalysis(imageBase64, userCategory);
+    }
+  }
+
+  analyzeImageForMl(imageBase64: string, userCategory: string): ImageAnalysis {
+    return this.localImageAnalysis(imageBase64, userCategory);
   }
 
   // Simple local image analysis as a placeholder
@@ -318,33 +356,9 @@ export class AIService {
     }
   ): Promise<ProductAnalysis> {
     try {
-      // Use HuggingFace for image analysis
-      let imageAnalysis: ImageAnalysis;
-      let hfResult;
-      let detectedBrand: string | null = null;
-      try {
-        hfResult = await this.analyzeImageWithHuggingFace(images[0]);
-        // Parse HuggingFace result
-        const label = hfResult?.[0]?.label || 'unknown';
-        const score = hfResult?.[0]?.score || 0.5;
-        // OCR for brand detection
-        detectedBrand = await detectBrandWithOCR(images[0]);
-
-        imageAnalysis = {
-          caption: `Detected as: ${label}`,
-          quality: score > 0.8 ? 'excellent' : score > 0.6 ? 'good' : score > 0.4 ? 'fair' : 'poor',
-          category: productDetails.category, // Use user-selected category instead of AI-detected
-          brand_detected: detectedBrand || undefined,
-
-          condition_score: Math.round(score * 10),
-          features: [label]
-        };
-      } catch (err) {
-        // Fallback to local analysis if HuggingFace fails
-        imageAnalysis = this.localImageAnalysis(images[0], productDetails.category);
-      }
+      const imageAnalysis = await this.analyzeImage(images[0], productDetails.category);
       // Use detected brand if found
-      const brandForPricing = detectedBrand || productDetails.brand;
+      const brandForPricing = imageAnalysis.brand_detected || productDetails.brand;
       // Fetch real prices from SERP API
       const serpPrices = await fetchSerpPrice(brandForPricing, imageAnalysis.category);
       // Get price suggestion using Gemini

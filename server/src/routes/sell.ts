@@ -1,9 +1,9 @@
 import express, { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
-import aiService, { ProductAnalysis } from '../utils/aiService';
 import Product from '../models/Product';
 import multer from 'multer';
 import cloudinaryService from '../utils/cloudinaryService';
+import pricingService from '../services/pricingService';
 
 const router = express.Router();
 
@@ -114,8 +114,8 @@ router.post('/submit',
       }));
       let aiAnalysis;
       try {
-        console.log('Running AI analysis...');
-        aiAnalysis = await aiService.analyzeProduct([imageBase64], {
+        console.log('Running product pricing analysis...');
+        aiAnalysis = await pricingService.analyzeProduct([imageBase64], {
           article,
           brand,
           category,
@@ -125,7 +125,7 @@ router.post('/submit',
           wear_count,
           damage
         });
-        console.log('AI analysis complete');
+        console.log('Product pricing analysis complete');
       } catch (aiError) {
         console.error('AI analysis failed:', aiError);
         return res.status(500).json({ message: 'Failed to analyze product. Please try again.' });

@@ -50,6 +50,63 @@ interface SellerRequest {
   };
 }
 
+function getPricingMetadata(req: SellerRequest) {
+  const suggestion = req.ai_analysis?.price_suggestion || {};
+  return {
+    source: suggestion.pricing_source || 'legacy_ai',
+    modelVersion: suggestion.model_version || null,
+    modelName: suggestion.model_name || null,
+    confidence: typeof suggestion.confidence_score === 'number' ? suggestion.confidence_score : null,
+    fallbackUsed: suggestion.fallback_used === true,
+    rangeLow: typeof suggestion.prediction_interval?.low === 'number' ? suggestion.prediction_interval.low : null,
+    rangeHigh: typeof suggestion.prediction_interval?.high === 'number' ? suggestion.prediction_interval.high : null,
+  };
+}
+
+function PricingMetadataCard({ req }: { req: SellerRequest }) {
+  const metadata = getPricingMetadata(req);
+  const sourceLabel = metadata.source === 'ml_service' ? 'ML Service' : 'Legacy AI';
+  const sourceClasses = metadata.source === 'ml_service'
+    ? 'bg-blue-100 text-blue-800'
+    : 'bg-slate-200 text-slate-800';
+
+  return (
+    <div className="rounded-lg border bg-background/60 p-3 mb-3">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <span className={`text-[11px] px-2 py-1 rounded-full font-semibold ${sourceClasses}`}>
+          {sourceLabel}
+        </span>
+        {metadata.modelVersion && (
+          <span className="text-[11px] px-2 py-1 rounded-full bg-violet-100 text-violet-800 font-medium">
+            {metadata.modelVersion}
+          </span>
+        )}
+        {metadata.fallbackUsed && (
+          <span className="text-[11px] px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">
+            Fallback used
+          </span>
+        )}
+      </div>
+      <div className="text-xs text-muted-foreground space-y-1">
+        {metadata.confidence !== null && (
+          <div>Confidence: <span className="font-medium text-foreground">{Math.round(metadata.confidence * 100)}%</span></div>
+        )}
+        {(metadata.rangeLow !== null || metadata.rangeHigh !== null) && (
+          <div>
+            Predicted range:{' '}
+            <span className="font-medium text-foreground">
+              ₹{metadata.rangeLow ?? '—'} - ₹{metadata.rangeHigh ?? '—'}
+            </span>
+          </div>
+        )}
+        {metadata.modelName && (
+          <div>Model: <span className="font-medium text-foreground">{metadata.modelName}</span></div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { user } = useUser();
   const { toast } = useToast();
@@ -480,6 +537,8 @@ export default function AdminDashboard() {
                           <div className="text-xs text-muted-foreground mb-1">Submitted: {new Date(req.created_at).toLocaleString()}</div>
                           <div className="text-xs text-muted-foreground mb-3">AI Suggested Price: ₹{aiPrice || 'N/A'}</div>
 
+                          <PricingMetadataCard req={req} />
+
                           {/* Pricing Controls */}
                           <div className="bg-background/50 p-4 rounded-lg mb-4">
                             <div className="flex flex-col sm:flex-row gap-3 mb-3">
@@ -684,6 +743,8 @@ export default function AdminDashboard() {
                       </div>
 
                       <div className="text-xs text-muted-foreground mb-2 italic line-clamp-2">{caption}</div>
+
+                      <PricingMetadataCard req={req} />
 
                       {/* Payment Details for Money Transfer */}
                       <PaymentDetailsCard seller={req.seller} productId={req._id} />

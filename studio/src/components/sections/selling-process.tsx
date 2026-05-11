@@ -9,13 +9,13 @@ const steps = [
   },
   {
     icon: <Sparkles className="w-10 h-10 text-primary" />,
-    title: '2. Get AI Pricing',
-    description: 'Our smart AI assesses your item and suggests a competitive, fair price instantly.',
+    title: '2. Get ML Pricing',
+    description: 'Our ML pricing engine evaluates your item and suggests a competitive, explainable resale price instantly.',
   },
   {
     icon: <ShieldCheck className="w-10 h-10 text-primary" />,
     title: '3. Admin Approval',
-    description: 'Our team reviews the AI suggestion to finalize a transparent offer for you.',
+    description: 'Our team reviews the ML estimate to finalize a transparent, trustworthy offer for you.',
   },
   {
     icon: <Truck className="w-10 h-10 text-primary" />,
