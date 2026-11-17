@@ -38,8 +38,8 @@ const EmailView = ({ onContinue }: { onContinue: (email: string) => void }) => {
     };
 
     const handleGoogleLogin = () => {
-        // Redirect to Google OAuth
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/auth/google`;
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com';
+        window.location.href = `${apiBaseUrl}/auth/google`;
     };
 
     return (

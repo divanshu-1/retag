@@ -35,8 +35,7 @@ import userRoutes from './routes/user';
 // Passport configuration
 import './config/passport';
 
-// Load environment variables from .env file
-dotenv.config();
+dotenv.config({ quiet: true });
 
 // Initialize Express application
 const app = express();
@@ -47,12 +46,19 @@ const PORT = process.env.PORT || 8080;
  */
 
 // CORS configuration - allows frontend to communicate with backend
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'https://retag-beta.vercel.app',
+  'https://retag-beta.vercel.app',
+  'http://localhost:9002',
+  'http://127.0.0.1:9002',
+].map((origin) => origin.replace(/\/$/, ''));
+
 app.use(cors({
-  origin: ['https://retag-beta.vercel.app', 'http://localhost:9002', 'http://127.0.0.1:9002'], // Allow Vercel production and local dev URLs
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma'], // Allowed headers
-  credentials: true, // Allow cookies and credentials
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 
 // Body parsing middleware - handles JSON and URL-encoded data
@@ -108,15 +114,34 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
  * DATABASE CONNECTION
  * Connect to MongoDB using Mongoose ODM
  */
-mongoose.connect(process.env.MONGO_URI!)
-  .then(() => {
+const connectMongo = async (attempt = 1): Promise<void> => {
+  const mongoUri = process.env.MONGO_URI;
+  if (!mongoUri) {
+    console.error('❌ MONGO_URI is not set. Add it in the Render environment variables.');
+    process.exit(1);
+  }
+
+  try {
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 30000,
+      family: 4, // Prefer IPv4; SRV lookups over IPv6 often fail on Render
+    });
     console.log('✅ MongoDB connected successfully');
     console.log(`📊 Database: ${mongoose.connection.name}`);
-  })
-  .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1); // Exit if database connection fails
-  });
+  } catch (err) {
+    console.error(`❌ MongoDB connection error (attempt ${attempt}):`, err);
+    if (attempt >= 5) {
+      console.error('❌ Could not connect to MongoDB after 5 attempts. Check MONGO_URI and Atlas Network Access (allow 0.0.0.0/0).');
+      process.exit(1);
+    }
+    const delayMs = Math.min(10000, 2000 * attempt);
+    console.log(`⏳ Retrying MongoDB connection in ${delayMs / 1000}s...`);
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    return connectMongo(attempt + 1);
+  }
+};
+
+connectMongo();
 
 /**
  * ROOT ENDPOINT

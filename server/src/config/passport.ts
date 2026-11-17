@@ -4,7 +4,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import dotenv from 'dotenv';
 import User from '../models/User';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 // User serialization/deserialization
 passport.serializeUser((user: any, done) => {
@@ -24,31 +24,43 @@ passport.deserializeUser(async (id: string, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: process.env.GOOGLE_OAUTH_CALLBACK_URL || 'https://retag-1n7d.onrender.com/auth/google/callback' // Use env var for prod, fallback to localhost
+    callbackURL: process.env.GOOGLE_OAUTH_CALLBACK_URL || 'https://retag-1n7d.onrender.com/auth/google/callback'
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
-      let user = await User.findOne({ googleId: profile.id });
+      const email = profile.emails?.[0]?.value?.toLowerCase();
+      if (!email) {
+        return done(new Error('Google account did not provide an email'), undefined);
+      }
 
-      // Extract profile picture URL
       const profilePicture = profile.photos && profile.photos.length > 0
         ? profile.photos[0].value
         : undefined;
 
+      let user = await User.findOne({ googleId: profile.id });
+
       if (!user) {
-        // Create new user with Google profile picture
-        user = await User.create({
-          googleId: profile.id,
-          displayName: profile.displayName,
-          email: profile.emails?.[0].value,
-          avatar: profilePicture, // Set Google profile picture as avatar
-        });
-      } else {
-        // Update existing user's avatar if they don't have one or if Google picture has changed
-        if (!user.avatar || user.avatar !== profilePicture) {
-          user.avatar = profilePicture;
+        user = await User.findOne({ email });
+        if (user) {
+          user.googleId = profile.id;
+          if (!user.displayName && profile.displayName) {
+            user.displayName = profile.displayName;
+          }
+          if (profilePicture && (!user.avatar || user.avatar !== profilePicture)) {
+            user.avatar = profilePicture;
+          }
           await user.save();
+        } else {
+          user = await User.create({
+            googleId: profile.id,
+            displayName: profile.displayName,
+            email,
+            avatar: profilePicture,
+          });
         }
+      } else if (profilePicture && user.avatar !== profilePicture) {
+        user.avatar = profilePicture;
+        await user.save();
       }
 
       done(null, user);

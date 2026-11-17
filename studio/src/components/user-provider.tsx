@@ -74,112 +74,111 @@ const setStoredUser = (user: User | null): void => {
 };
 
 // JWT token validation and user extraction
-const validateToken = async (token: string): Promise<User | null> => {
-  try {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com';
-    const response = await fetch(`${API_BASE_URL}/auth/protected`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    if (response.ok) {
-      const data = await response.json();
-      return data.user;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retag-1n7d.onrender.com';
+
+const validateToken = async (token: string, retries = 2): Promise<User | null> => {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/protected`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return data.user;
+      }
+      if (response.status === 401) {
+        return null;
+      }
+    } catch (error) {
+      console.error('Token validation error:', error);
     }
-    return null;
-  } catch (error) {
-    console.error('Token validation error:', error);
-    return null;
+    if (attempt < retries) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
   }
+  return null;
+};
+
+const getHashToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash.startsWith('#')
+    ? window.location.hash.slice(1)
+    : window.location.hash;
+  const params = new URLSearchParams(hash);
+  return params.get('token');
+};
+
+const getHashAuthError = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash.startsWith('#')
+    ? window.location.hash.slice(1)
+    : window.location.hash;
+  const params = new URLSearchParams(hash);
+  return params.get('auth-error');
+};
+
+const clearAuthHash = () => {
+  if (typeof window === 'undefined') return;
+  window.history.replaceState({}, '', window.location.pathname + window.location.search);
 };
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize user from stored token on mount
+  const loginWithToken = useCallback(async (token: string) => {
+    try {
+      setStoredToken(token);
+      const userData = await validateToken(token);
+      if (userData) {
+        setUser(userData);
+        setStoredUser(userData);
+        console.log('Successfully logged in with token');
+      } else {
+        console.error('Invalid token provided');
+        setStoredToken(null);
+        setStoredUser(null);
+      }
+    } catch (error) {
+      console.error('Error logging in with token:', error);
+    }
+  }, []);
+
   useEffect(() => {
     const initializeUser = async () => {
-      const token = getStoredToken();
-      if (token) {
-        const userData = await validateToken(token);
-        if (userData) {
-          setUser(userData);
-          setStoredUser(userData);
-        } else {
-          // Token is invalid, clear it
-          setStoredToken(null);
-          setStoredUser(null);
+      const oauthToken = getHashToken();
+      const oauthError = getHashAuthError();
+      const qrToken = new URLSearchParams(window.location.search).get('token');
+
+      if (oauthError) {
+        console.error('Authentication error:', oauthError);
+        clearAuthHash();
+      } else if (oauthToken) {
+        await loginWithToken(oauthToken);
+        clearAuthHash();
+      } else if (qrToken) {
+        await loginWithToken(qrToken);
+        window.history.replaceState({}, '', window.location.pathname);
+      } else {
+        const token = getStoredToken();
+        if (token) {
+          const userData = await validateToken(token);
+          if (userData) {
+            setUser(userData);
+            setStoredUser(userData);
+          } else {
+            setStoredToken(null);
+            setStoredUser(null);
+          }
         }
       }
       setIsLoading(false);
     };
 
     initializeUser();
-  }, []);
-
-  // Handle hash changes for OAuth callback and QR code auto-login
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      const search = window.location.search;
-
-      // Check for OAuth token in hash
-      const tokenMatch = hash.match(/#token=([^&]+)/);
-      const errorMatch = hash.match(/#auth-error=([^&]+)/);
-
-      // Check for QR code token in URL parameters
-      const urlParams = new URLSearchParams(search);
-      const qrToken = urlParams.get('token');
-
-      if (tokenMatch) {
-        const token = tokenMatch[1];
-        loginWithToken(token);
-        // Clear the hash
-        window.location.hash = '';
-      } else if (qrToken) {
-        // Handle QR code auto-login
-        loginWithToken(qrToken);
-        // Clean up URL by removing token parameter
-        const newUrl = window.location.pathname + window.location.hash;
-        window.history.replaceState({}, '', newUrl);
-      } else if (errorMatch) {
-        const error = errorMatch[1];
-        console.error('Authentication error:', error);
-        // Clear the hash
-        window.location.hash = '';
-      }
-    };
-
-    // Check on mount
-    handleHashChange();
-
-    // Listen for hash changes
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
-  const loginWithToken = useCallback(async (token: string) => {
-    try {
-      const userData = await validateToken(token);
-      if (userData) {
-        setUser(userData);
-        setStoredToken(token);
-        setStoredUser(userData);
-        // Always update both keys for compatibility
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('token', token);
-          localStorage.setItem('auth_token', token);
-          localStorage.setItem('user_data', JSON.stringify(userData));
-        }
-        console.log('Successfully logged in with token');
-      } else {
-        console.error('Invalid token provided');
-      }
-    } catch (error) {
-      console.error('Error logging in with token:', error);
-    }
-  }, []);
+  }, [loginWithToken]);
 
   const login = useCallback((email: string) => {
     // This is for local login - for Google OAuth, use loginWithToken

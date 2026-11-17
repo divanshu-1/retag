@@ -136,10 +136,4 @@ const UserSchema = new Schema<IUser>({
   }
 });
 
-/**
- * Indexes for better query performance
- */
-UserSchema.index({ email: 1 });      // Index on email for login queries
-UserSchema.index({ googleId: 1 });   // Index on googleId for OAuth queries
-
 export default mongoose.model<IUser>('User', UserSchema);

@@ -25,6 +25,7 @@ import OTP from '../models/OTP';
 import { generateOTP, sendOTPEmail, sendPasswordResetSuccessEmail } from '../utils/emailService';
 
 const router = express.Router();
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://retag-beta.vercel.app').replace(/\/$/, '');
 
 /**
  * Password Validation Function
@@ -191,27 +192,27 @@ router.get('/google/callback',
       const user = req.user as any;
       if (!user) {
         console.error('No user found in request after Google authentication');
-        return res.redirect('https://retag-beta.vercel.app/#auth-error=no-user');
+        return res.redirect(`${FRONTEND_URL}/#auth-error=no-user`);
       }
       const payload = { 
-        id: user._id, // Ensure id is included
+        id: String(user._id),
         displayName: user.displayName, 
         email: user.email,
         googleId: user.googleId 
       };
       const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '7d' });
       console.log('Google OAuth successful for user:', user.email);
-      res.redirect(`https://retag-beta.vercel.app/#token=${token}`);
+      res.redirect(`${FRONTEND_URL}/#token=${token}`);
     } catch (error) {
       console.error('Error in Google OAuth callback:', error);
-      res.redirect('http://localhost:9002/#auth-error=callback-error');
+      res.redirect(`${FRONTEND_URL}/#auth-error=callback-error`);
     }
 });
 
 // OAuth failure route
 router.get('/failure', (req, res) => {
   console.error('Google OAuth authentication failed');
-  res.redirect('https://retag-beta.vercel.app/#auth-error=authentication-failed');
+  res.redirect(`${FRONTEND_URL}/#auth-error=authentication-failed`);
 });
 
 // Example protected route

@@ -8,7 +8,7 @@ import Order from '../models/Order';
 import User from '../models/User';
 import Product from '../models/Product';
 import passport from 'passport';
-dotenv.config();
+dotenv.config({ quiet: true });
 
 
 const router = express.Router();
@@ -51,10 +51,6 @@ router.post('/test-order', async (req, res) => {
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
 });
-
-console.log("DEBUG KEY_ID:", process.env.RAZORPAY_KEY_ID);
-console.log("DEBUG KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
-
 
 const instance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID!,
