@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 models/*.joblib
+!models/pricing_model.joblib

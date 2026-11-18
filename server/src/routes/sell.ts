@@ -84,7 +84,7 @@ router.post('/submit',
       }
 
       let cloudinaryResults;
-      let imageBase64 = '';
+      let analysisImages: string[] = [];
 
       try {
         // Upload images to Cloudinary
@@ -95,9 +95,9 @@ router.post('/submit',
         });
         console.log('Images uploaded to Cloudinary successfully');
 
-        // Convert first image to base64 for AI analysis
-        imageBase64 = files[0].buffer.toString('base64');
-        console.log('Image processed to base64 for AI analysis');
+        // Analyze every submitted view (front, back, tag, and damage photos).
+        analysisImages = files.map((file) => file.buffer.toString('base64'));
+        console.log(`Prepared ${analysisImages.length} image(s) for product analysis`);
       } catch (uploadErr) {
         console.error('Error uploading images to Cloudinary:', uploadErr);
         return res.status(500).json({ message: 'Error uploading images' });
@@ -115,7 +115,7 @@ router.post('/submit',
       let aiAnalysis;
       try {
         console.log('Running product pricing analysis...');
-        aiAnalysis = await pricingService.analyzeProduct([imageBase64], {
+        aiAnalysis = await pricingService.analyzeProduct(analysisImages, {
           article,
           brand,
           category,

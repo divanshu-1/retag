@@ -51,6 +51,13 @@ export interface IProduct extends Document {
 
       condition_score: number;                            // Condition score (0-100)
       features: string[];                                 // Detected features
+      brand_detected?: string;
+      ocr_text?: string;
+      market_retail_price?: number;
+      market_retail_min?: number;
+      market_retail_max?: number;
+      market_comparable_count?: number;
+      vision_available?: boolean;
     };
     price_suggestion: {
       suggested_price: number;        // AI-suggested price in INR
@@ -58,7 +65,7 @@ export interface IProduct extends Document {
       market_comparison: string;      // Market analysis
       confidence_score: number;       // AI confidence (0-100)
       factors: string[];              // Factors affecting price
-      pricing_source?: 'legacy_ai' | 'ml_service'; // Which engine generated the price
+      pricing_source?: 'legacy_ai' | 'ml_service' | 'market_estimate'; // Which engine generated the price
       model_name?: string;            // ML model identifier when applicable
       model_version?: string;         // Version of the pricing model
       prediction_interval?: {
@@ -180,13 +187,20 @@ const ProductSchema = new Schema<IProduct>({
       },
       category: { type: String, required: true },
 
-      condition_score: {
+    condition_score: {
         type: Number,
         min: 1,
         max: 10,
         required: true
       },
-      features: [{ type: String }]
+      features: [{ type: String }],
+      brand_detected: { type: String },
+      ocr_text: { type: String },
+      market_retail_price: { type: Number },
+      market_retail_min: { type: Number },
+      market_retail_max: { type: Number },
+      market_comparable_count: { type: Number },
+      vision_available: { type: Boolean }
     },
     price_suggestion: {
       suggested_price: { type: Number, required: true },
@@ -201,7 +215,7 @@ const ProductSchema = new Schema<IProduct>({
       factors: [{ type: String }],
       pricing_source: {
         type: String,
-        enum: ['legacy_ai', 'ml_service']
+        enum: ['legacy_ai', 'ml_service', 'market_estimate']
       },
       model_name: { type: String },
       model_version: { type: String },
@@ -264,4 +278,4 @@ ProductSchema.index({ seller: 1, status: 1 });
 ProductSchema.index({ status: 1, created_at: -1 });
 ProductSchema.index({ 'ai_analysis.price_suggestion.suggested_price': 1 });
 
-export default mongoose.model<IProduct>('Product', ProductSchema); 
+export default mongoose.model<IProduct>('Product', ProductSchema);

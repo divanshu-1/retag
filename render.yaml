@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: retag-ml-service
+    runtime: python
+    rootDir: ml-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: MODEL_PATH
+        value: models/pricing_model.joblib

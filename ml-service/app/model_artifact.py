@@ -19,6 +19,7 @@ class RetagPriceModel:
         self.svd: Optional[TruncatedSVD] = None
         self.estimator: Any = None
         self.training_metrics: Dict[str, float] = {}
+        self.feature_schema_version = 2
 
     def fit(self, records: List[Dict[str, Any]], targets: List[float]) -> 'RetagPriceModel':
         features = self._build_feature_matrix(records, fit=True)
@@ -90,6 +91,12 @@ class RetagPriceModel:
         structured_rows = [self._structured_features(record) for record in records]
         numeric_rows = np.asarray([self._numeric_features(record) for record in records], dtype=float)
 
+        # Preserve compatibility with artifacts trained before image/retail features existed.
+        if not fit and not hasattr(self, 'feature_schema_version'):
+            numeric_rows = numeric_rows[:, :5]
+            text_corpus = [self._compose_text(record, include_visual=False) for record in records]
+            structured_rows = [self._structured_features(record, include_visual=False) for record in records]
+
         if fit:
             text_matrix = self.text_vectorizer.fit_transform(text_corpus)
             structured_matrix = self.dict_vectorizer.fit_transform(structured_rows)
@@ -124,7 +131,7 @@ class RetagPriceModel:
 
         return self.svd.transform(matrix)
 
-    def _compose_text(self, record: Dict[str, Any]) -> str:
+    def _compose_text(self, record: Dict[str, Any], include_visual: bool = True) -> str:
         image_analysis = record.get('image_analysis') or {}
         features = image_analysis.get('features') or record.get('features') or []
         parts = [
@@ -134,11 +141,14 @@ class RetagPriceModel:
             str(record.get('description', '')),
             str(record.get('damage', '')),
             str(image_analysis.get('caption', '')),
+            str(image_analysis.get('ocr_text', '')) if include_visual else '',
+            str(image_analysis.get('brand_detected', '')) if include_visual else '',
+            str(image_analysis.get('market_retail_price', '')) if include_visual else '',
             ' '.join(str(item) for item in features),
         ]
         return ' '.join(part.strip() for part in parts if part).lower()
 
-    def _structured_features(self, record: Dict[str, Any]) -> Dict[str, Any]:
+    def _structured_features(self, record: Dict[str, Any], include_visual: bool = True) -> Dict[str, Any]:
         image_analysis = record.get('image_analysis') or {}
         return {
             'brand': (record.get('brand') or 'unknown').strip().lower(),
@@ -148,6 +158,7 @@ class RetagPriceModel:
             'age': (record.get('age') or 'unknown').strip().lower(),
             'quality': (image_analysis.get('quality') or record.get('quality') or 'unknown').strip().lower(),
             'has_damage': 'yes' if self._has_damage(record.get('damage')) else 'no',
+            **({'brand_detected': (image_analysis.get('brand_detected') or record.get('brand') or 'unknown').strip().lower()} if include_visual else {}),
         }
 
     def _numeric_features(self, record: Dict[str, Any]) -> List[float]:
@@ -155,13 +166,16 @@ class RetagPriceModel:
         description = str(record.get('description', '') or '')
         wear_count = self._safe_float(record.get('wear_count'))
         condition_score = self._safe_float(image_analysis.get('condition_score', record.get('condition_score', 0)))
-        return [
+        features = [
             wear_count,
             condition_score,
             len(description),
             len(description.split()),
             1.0 if self._has_damage(record.get('damage')) else 0.0,
         ]
+        if getattr(self, 'feature_schema_version', 1) >= 2:
+            features.append(self._safe_float(image_analysis.get('market_retail_price', record.get('market_retail_price', 0))))
+        return features
 
     def _confidence_from_payload(self, payload: Dict[str, Any]) -> float:
         image_analysis = payload.get('image_analysis') or {}

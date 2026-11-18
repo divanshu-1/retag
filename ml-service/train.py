@@ -1,5 +1,6 @@
 import argparse
 import csv
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -49,6 +50,9 @@ def normalize_mercari_row(row: Dict[str, str]) -> Tuple[Optional[Dict[str, Any]]
         'brand': (row.get('brand_name') or 'Unknown').strip(),
         'category': top_category,
         'description': description,
+        'market_retail_price': safe_float(row.get('market_retail_price')),
+        'ocr_text': (row.get('ocr_text') or '').strip(),
+        'brand_detected': (row.get('brand_detected') or '').strip(),
         'damage': damage,
         'gender': None,
         'size': None,
@@ -83,6 +87,9 @@ def normalize_retag_style_row(row: Dict[str, str]) -> Tuple[Optional[Dict[str, A
         'wear_count': int(safe_float(row.get('wear_count')) or 0),
         'damage': empty_to_none(row.get('damage')),
         'description': (row.get('description') or '').strip(),
+        'market_retail_price': safe_float(row.get('market_retail_price')),
+        'ocr_text': (row.get('ocr_text') or '').strip(),
+        'brand_detected': (row.get('brand_detected') or '').strip(),
         'image_analysis': {
             'caption': (row.get('caption') or row.get('description') or '').strip(),
             'quality': quality,
@@ -189,6 +196,8 @@ def main() -> None:
         raise ValueError('Need at least 10 valid training rows to train the model')
 
     model = train_and_select(records, prices)
+    model.model_version = f'{model.estimator_type}-{datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")}'
+    model.dataset_rows = len(records)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, output_path)
     print(f'Saved trained model to {output_path}')

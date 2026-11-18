@@ -10,6 +10,8 @@ class ImageAnalysisInput(BaseModel):
     condition_score: int = Field(ge=0, le=10)
     features: List[str] = Field(default_factory=list)
     brand_detected: Optional[str] = None
+    ocr_text: Optional[str] = None
+    market_retail_price: Optional[float] = Field(default=None, ge=0)
 
 
 class PredictRequest(BaseModel):

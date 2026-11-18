@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import os
 
 from .predictor import PricingPredictor
 from .schemas import PredictRequest, PredictResponse
@@ -29,3 +30,8 @@ def model_info() -> dict:
 @app.post('/predict', response_model=PredictResponse)
 def predict(payload: PredictRequest) -> PredictResponse:
     return predictor.predict(payload)
+
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host='0.0.0.0', port=int(os.getenv('PORT', '8010')))

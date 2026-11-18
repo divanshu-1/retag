@@ -1,7 +1,6 @@
 import axios from 'axios';
 import vision from '@google-cloud/vision';
 import fs from 'fs';
-import path from 'path';
 
 // Types for AI analysis
 export interface ImageAnalysis {
@@ -12,6 +11,12 @@ export interface ImageAnalysis {
 
   condition_score: number; // 1-10
   features: string[];
+  ocr_text?: string;
+  market_retail_price?: number;
+  market_retail_min?: number;
+  market_retail_max?: number;
+  market_comparable_count?: number;
+  vision_available?: boolean;
 }
 
 export interface PriceSuggestion {
@@ -20,7 +25,7 @@ export interface PriceSuggestion {
   market_comparison: string;
   confidence_score: number; // 0-1
   factors: string[];
-  pricing_source?: 'legacy_ai' | 'ml_service';
+  pricing_source?: 'legacy_ai' | 'ml_service' | 'market_estimate';
   model_name?: string;
   model_version?: string;
   prediction_interval?: {
@@ -43,22 +48,37 @@ export interface ProductAnalysis {
 }
 
 // SERP API price fetcher
-async function fetchSerpPrice(brand: string, category: string) {
+async function fetchSerpPrice(brand: string, category: string, article: string, ocrText = '') {
   const SERP_API_KEY = process.env.SERP_API_KEY;
   if (!SERP_API_KEY) return null;
   try {
-    const query = encodeURIComponent(`${brand} ${category} price India`);
+    const query = encodeURIComponent(`${brand} ${article} ${category} India`);
     const url = `https://serpapi.com/search.json?q=${query}&engine=google_shopping&api_key=${SERP_API_KEY}`;
     const response = await axios.get(url);
     const products = response.data?.shopping_results || [];
     if (products.length > 0) {
-      // Get min/max price from results
-      const prices = products.map((p: any) => parseInt((p.price || '').replace(/[^\d]/g, ''))).filter(Boolean);
+      const itemTerms = `${article} ${category}`.toLowerCase().split(/\W+/).filter((token) => token.length > 3 && !['clothing', 'fashion', 'apparel', 'other'].includes(token));
+      const brandToken = brand.toLowerCase().trim();
+      const matched = products.filter((product: any) => {
+        const title = String(product.title || '').toLowerCase();
+        return title.includes(brandToken) && (itemTerms.length === 0 || itemTerms.some((token) => title.includes(token)));
+      });
+      const prices = matched.map((p: any) => {
+        const raw = String(p.extracted_price ?? p.price ?? '');
+        const value = Number(raw.replace(/[^\d.]/g, ''));
+        return Number.isFinite(value) && value >= 200 && value <= 200000 ? value : null;
+      }).filter((value: number | null): value is number => value !== null);
       if (prices.length > 0) {
+        prices.sort((a: number, b: number) => a - b);
+        const median = prices.length % 2
+          ? prices[Math.floor(prices.length / 2)]
+          : (prices[prices.length / 2 - 1] + prices[prices.length / 2]) / 2;
         return {
           min: Math.min(...prices),
           max: Math.max(...prices),
-          avg: Math.round(prices.reduce((a: number, b: number) => a + b, 0) / prices.length)
+          avg: Math.round(median),
+          count: prices.length,
+          query: `${brand} ${article} ${category}`
         };
       }
     }
@@ -92,36 +112,50 @@ function initializeVisionClient() {
 }
 
 // Google Vision OCR for brand detection
-async function detectBrandWithOCR(imageBase64: string): Promise<string | null> {
+async function detectTextWithVision(imagesBase64: string[]): Promise<{ text: string; labels: string[]; logos: string[]; qualityScores: number[]; available: boolean }> {
   try {
     const client = initializeVisionClient();
-    if (!client) {
-      console.warn('Google Vision client not available, skipping OCR');
-      return null;
-    }
-    const [result] = await client.textDetection({ image: { content: imageBase64 } });
-    const detections = result.textAnnotations;
-    let text: string = '';
-    if (detections && detections.length > 0 && typeof detections[0].description === 'string') {
-      text = detections[0].description;
-      console.log('Google Vision OCR text:', text); // Log the OCR text for debugging
-    }
-    // List of known brands (expand as needed)
-    const brands = [
-      'Nike', 'Adidas', 'Puma', 'Levi', 'French Connection', 'Zara', 'H&M', 'Gucci', 'Louis Vuitton', 'Reebok', 'Under Armour', 'Fila', 'Tommy Hilfiger', 'Calvin Klein', 'Superdry', 'Jack & Jones', 'UCB', 'United Colors of Benetton', 'Wrangler', 'Pepe Jeans', 'Lee', 'Allen Solly', 'Van Heusen', 'Arrow', 'Peter England', 'Raymond', 'Biba', 'W', 'Global Desi', 'Forever 21', 'Gap', 'Marks & Spencer', 'Mango', 'Boss', 'Diesel', 'Celio', 'Roadster', 'HRX', 'Mufti', 'Spykar', 'Flying Machine', 'S Oliver', 'S.Oliver', 'French Connection', 'FCUK'
-    ];
-    if (text) {
-      for (const brand of brands) {
-        if (text.toLowerCase().includes(brand.toLowerCase())) {
-          return brand;
-        }
-      }
-    }
-    return null;
+    if (!client) return { text: '', labels: [], logos: [], qualityScores: [], available: false };
+    const results = await Promise.all(imagesBase64.map(async (imageBase64) => {
+      const [visionResult] = await client.annotateImage({
+        image: { content: imageBase64 },
+        features: [
+          { type: 'TEXT_DETECTION', maxResults: 20 },
+          { type: 'LOGO_DETECTION', maxResults: 10 },
+          { type: 'LABEL_DETECTION', maxResults: 12 },
+          { type: 'IMAGE_PROPERTIES' }
+        ]
+      });
+      return visionResult;
+    }));
+    const text = results.flatMap((result) => result.textAnnotations || []).map((item) => item.description || '').join(' ');
+    return {
+      text,
+      labels: results.flatMap((result) => result.labelAnnotations || []).map((item) => item.description || ''),
+      logos: results.flatMap((result) => result.logoAnnotations || []).map((item) => item.description || ''),
+      qualityScores: results.flatMap((result) => result.imagePropertiesAnnotation?.dominantColors?.colors || []).map((item) => item.score || 0),
+      available: true
+    };
   } catch (err) {
-    console.error('Google Vision OCR error:', err);
-    return null;
+    console.error('Google Vision analysis error:', err);
+    return { text: '', labels: [], logos: [], qualityScores: [], available: false };
   }
+}
+
+function normalizeBrand(text: string): string | undefined {
+  const brands = ['Nike', 'Adidas', 'Puma', 'Levi\'s', 'Zara', 'H&M', 'Gucci', 'Louis Vuitton', 'Reebok', 'Under Armour', 'Fila', 'Tommy Hilfiger', 'Calvin Klein', 'Superdry', 'Jack & Jones', 'Wrangler', 'Pepe Jeans', 'Lee', 'Allen Solly', 'Van Heusen', 'Arrow', 'Biba', 'Mango', 'Diesel', 'Roadster', 'HRX', 'Mufti', 'Flying Machine'];
+  const normalized = text.toLowerCase().replace(/[^a-z0-9& ]/g, ' ');
+  return brands.find((brand) => normalized.includes(brand.toLowerCase().replace(/[^a-z0-9& ]/g, ' ')));
+}
+
+function conditionFromDetails(details: { wear_count?: number; age?: string; damage?: string }): number {
+  let score = 8;
+  const wear = Number(details.wear_count || 0);
+  score -= Math.min(3, Math.floor(wear / 3));
+  if (details.age === '2-3') score -= 1;
+  if (details.age === '>3') score -= 2;
+  if (details.damage?.trim()) score -= 2;
+  return Math.max(2, Math.min(10, score));
 }
 
 
@@ -280,41 +314,44 @@ export class AIService {
   }
 
   async analyzeImage(imageBase64: string, userCategory: string): Promise<ImageAnalysis> {
-    let detectedBrand: string | null = null;
-
-    try {
-      const hfResult = await this.analyzeImageWithHuggingFace(imageBase64);
-      const label = hfResult?.[0]?.label || 'unknown';
-      const score = hfResult?.[0]?.score || 0.5;
-      detectedBrand = await detectBrandWithOCR(imageBase64);
-
-      return {
-        caption: `Detected as: ${label}`,
-        quality: score > 0.8 ? 'excellent' : score > 0.6 ? 'good' : score > 0.4 ? 'fair' : 'poor',
-        category: userCategory,
-        brand_detected: detectedBrand || undefined,
-        condition_score: Math.round(score * 10),
-        features: [label]
-      };
-    } catch (err) {
-      return this.localImageAnalysis(imageBase64, userCategory);
-    }
+    return this.analyzeImages([imageBase64], { article: 'clothing item', brand: '', category: userCategory });
   }
 
-  analyzeImageForMl(imageBase64: string, userCategory: string): ImageAnalysis {
-    return this.localImageAnalysis(imageBase64, userCategory);
-  }
-
-  // Simple local image analysis as a placeholder
-  private localImageAnalysis(imageBase64: string, userCategory: string): ImageAnalysis {
-    // In production, you may want to use Gemini Vision or another service
+  async analyzeImages(
+    imagesBase64: string[],
+    details: { article: string; brand: string; category: string; age?: string; wear_count?: number; damage?: string }
+  ): Promise<ImageAnalysis> {
+    const visionResult = await detectTextWithVision(imagesBase64);
+    const combinedText = `${visionResult.text} ${visionResult.logos.join(' ')}`;
+    const detectedBrand = normalizeBrand(combinedText);
+    const labels = [...new Set(visionResult.labels)].filter(Boolean).slice(0, 8);
+    const ocrText = visionResult.text.replace(/\s+/g, ' ').trim().slice(0, 500);
+    const conditionScore = conditionFromDetails(details);
+    const quality = conditionScore >= 9 ? 'excellent' : conditionScore >= 7 ? 'good' : conditionScore >= 5 ? 'fair' : 'poor';
+    const visionAvailable = visionResult.available;
+    const confidence = detectedBrand
+      ? 'Brand matched from tag/logo.'
+      : visionAvailable ? 'Brand not independently confirmed; using seller entry.' : 'Google Vision credentials unavailable; image OCR and labels were not analyzed.';
+    const market = await fetchSerpPrice(detectedBrand || details.brand, details.category, details.article, ocrText);
     return {
-      caption: 'Clothing item in good condition',
-      quality: 'good',
-      category: userCategory, // Use user-selected category
-      condition_score: 7,
-      features: ['standard clothing item']
+      caption: `${confidence} Visual labels: ${labels.join(', ') || details.category}. Condition reflects declared wear and damage; image condition is not yet visually graded.`,
+      quality,
+      category: details.category,
+      brand_detected: detectedBrand,
+      condition_score: conditionScore,
+      features: [...labels, ...visionResult.logos.slice(0, 3)],
+      ocr_text: ocrText || undefined,
+      market_retail_price: market?.avg,
+      market_retail_min: market?.min,
+      market_retail_max: market?.max,
+      market_comparable_count: market?.count,
+      vision_available: visionAvailable
     };
+  }
+
+  // Kept only for callers that explicitly need a neutral metadata-based baseline.
+  private localImageAnalysis(_imageBase64: string, userCategory: string): ImageAnalysis {
+    return { caption: 'Image analysis unavailable; condition is unverified.', quality: 'good', category: userCategory, condition_score: 6, features: [] };
   }
 
   // HuggingFace image analysis
@@ -324,8 +361,8 @@ export class AIService {
       throw new Error('HuggingFace API key not found');
     }
     try {
-      const response = await axios.post(
-        'https://api-inference.huggingface.co/models/google/vit-base-patch16-224',
+    const response = await axios.post(
+        'https://router.huggingface.co/hf-inference/models/google/vit-base-patch16-224',
         { inputs: imageBase64 },
         {
           headers: {
@@ -356,13 +393,20 @@ export class AIService {
     }
   ): Promise<ProductAnalysis> {
     try {
-      const imageAnalysis = await this.analyzeImage(images[0], productDetails.category);
+      const imageAnalysis = await this.analyzeImages(images, productDetails);
       // Use detected brand if found
       const brandForPricing = imageAnalysis.brand_detected || productDetails.brand;
       // Fetch real prices from SERP API
-      const serpPrices = await fetchSerpPrice(brandForPricing, imageAnalysis.category);
+      const serpPrices = imageAnalysis.market_retail_price ? {
+        min: imageAnalysis.market_retail_min || imageAnalysis.market_retail_price,
+        max: imageAnalysis.market_retail_max || imageAnalysis.market_retail_price,
+        avg: imageAnalysis.market_retail_price,
+        count: imageAnalysis.market_comparable_count || 1
+      } : null;
       // Get price suggestion using Gemini
-      const priceSuggestion = await this.gemini.suggestPriceWithSerp(imageAnalysis, { ...productDetails, brand: brandForPricing }, serpPrices);
+      const priceSuggestion = serpPrices
+        ? this.marketBasedPrice(imageAnalysis, productDetails, brandForPricing, serpPrices)
+        : await this.gemini.suggestPriceWithSerp(imageAnalysis, { ...productDetails, brand: brandForPricing }, null);
       // Generate final recommendation
       const finalRecommendation = this.generateFinalRecommendation(imageAnalysis, priceSuggestion);
       // Generate user-facing report
@@ -392,6 +436,44 @@ export class AIService {
     }
   }
 
+  private marketBasedPrice(
+    imageAnalysis: ImageAnalysis,
+    details: { wear_count?: number; age?: string; damage?: string },
+    brand: string,
+    retail: { min: number; max: number; avg: number; count?: number }
+  ): PriceSuggestion {
+    const conditionFactor = 0.25 + ((imageAnalysis.condition_score - 1) / 9) * 0.35;
+    const wearPenalty = Math.min(0.18, Math.max(0, Number(details.wear_count || 0)) * 0.02);
+    const agePenalty = details.age === '>3' ? 0.1 : details.age === '2-3' ? 0.05 : 0;
+    const damagePenalty = details.damage?.trim() ? 0.12 : 0;
+    const resaleFactor = Math.max(0.1, Math.min(0.6, conditionFactor - wearPenalty - agePenalty - damagePenalty));
+    const price = Math.max(150, Math.round((retail.avg * resaleFactor) / 10) * 10);
+    return {
+      suggested_price: price,
+      reasoning: `Comparable retail median ₹${retail.avg}; resale factor ${(resaleFactor * 100).toFixed(0)}% applied for condition, age, wear, and reported damage.`,
+      market_comparison: `Google Shopping returned ${retail.count || 'several'} comparable listings from ₹${retail.min} to ₹${retail.max}; this is a retail reference, not a verified used-item sale price.`,
+      confidence_score: imageAnalysis.brand_detected && (retail.count || 0) >= 3 ? 0.72 : (retail.count || 0) >= 3 ? 0.58 : 0.4,
+      factors: [`brand=${brand}`, `retail_median=${retail.avg}`, `condition_score=${imageAnalysis.condition_score}/10`, `resale_factor=${resaleFactor.toFixed(2)}`],
+      pricing_source: 'market_estimate',
+      fallback_used: false
+    };
+  }
+
+  async suggestMarketBasedPrice(
+    imageAnalysis: ImageAnalysis,
+    details: { wear_count?: number; age?: string; damage?: string },
+    brand: string
+  ): Promise<PriceSuggestion | null> {
+    if (!imageAnalysis.market_retail_price) return null;
+    const retail = {
+      min: imageAnalysis.market_retail_price,
+      max: imageAnalysis.market_retail_price,
+      avg: imageAnalysis.market_retail_price,
+      count: 1
+    };
+    return this.marketBasedPrice(imageAnalysis, details, brand, retail);
+  }
+
   private generateFinalRecommendation(
     imageAnalysis: ImageAnalysis,
     priceSuggestion: PriceSuggestion
@@ -409,4 +491,4 @@ export class AIService {
   }
 }
 
-export default new AIService(); 
+export default new AIService();

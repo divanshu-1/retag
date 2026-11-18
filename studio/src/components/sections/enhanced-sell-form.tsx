@@ -63,6 +63,9 @@ interface AIAnalysis {
     caption: string;
     quality: 'excellent' | 'good' | 'fair' | 'poor';
     category: string;
+    brand_detected?: string;
+    market_retail_price?: number;
+    ocr_text?: string;
     condition_score: number;
     features: string[];
   };
@@ -72,7 +75,7 @@ interface AIAnalysis {
     market_comparison: string;
     confidence_score: number;
     factors: string[];
-    pricing_source?: 'legacy_ai' | 'ml_service';
+    pricing_source?: 'legacy_ai' | 'ml_service' | 'market_estimate';
     model_name?: string;
     model_version?: string;
     prediction_interval?: {
@@ -463,13 +466,17 @@ export default function EnhancedSellForm() {
   };
 
   const getPricingSourceLabel = (source?: string) => {
-    return source === 'ml_service' ? 'ML Price Engine' : 'Legacy AI Fallback';
+    if (source === 'ml_service') return 'ML Price Engine';
+    if (source === 'market_estimate') return 'Market Estimate';
+    return 'Legacy AI Fallback';
   };
+
+  const hasVisionUnavailableNotice = aiAnalysis?.image_analysis.caption.includes('Google Vision credentials unavailable');
 
   const getPricingSourceColor = (source?: string) => {
     return source === 'ml_service'
       ? 'bg-blue-100 text-blue-800'
-      : 'bg-amber-100 text-amber-800';
+      : source === 'market_estimate' ? 'bg-violet-100 text-violet-800' : 'bg-amber-100 text-amber-800';
   };
 
   const getConfidenceLabel = (confidence: number) => {
@@ -779,10 +786,23 @@ export default function EnhancedSellForm() {
                   <p className="font-medium">{formData.category}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">Brand from image</p>
+                  <p className="font-medium">{aiAnalysis.image_analysis.brand_detected || 'Not confirmed from tag/logo'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Retail reference</p>
+                  <p className="font-medium">{aiAnalysis.image_analysis.market_retail_price ? `₹${aiAnalysis.image_analysis.market_retail_price}` : 'No comparable listing found'}</p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">Condition Score</p>
                   <p className="font-medium">{aiAnalysis.image_analysis.condition_score}/10</p>
                 </div>
               </div>
+              {hasVisionUnavailableNotice && (
+                <p className="mt-3 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+                  Image text and logos could not be checked. The price uses the details you entered and any available market/model data.
+                </p>
+              )}
               <div className="mt-3">
                 <p className="text-sm text-muted-foreground">Features</p>
                 <div className="flex flex-wrap gap-2 mt-1">
@@ -1251,4 +1271,4 @@ export default function EnhancedSellForm() {
       </div>
     </section>
   );
-} 
+}
