@@ -471,7 +471,7 @@ export default function EnhancedSellForm() {
     return 'Legacy AI Fallback';
   };
 
-  const hasVisionUnavailableNotice = aiAnalysis?.image_analysis.caption.includes('Google Vision credentials unavailable');
+  const hasOCRUnavailableNotice = aiAnalysis?.image_analysis.caption.includes('PaddleOCR service unavailable');
 
   const getPricingSourceColor = (source?: string) => {
     return source === 'ml_service'
@@ -798,9 +798,9 @@ export default function EnhancedSellForm() {
                   <p className="font-medium">{aiAnalysis.image_analysis.condition_score}/10</p>
                 </div>
               </div>
-              {hasVisionUnavailableNotice && (
+              {hasOCRUnavailableNotice && (
                 <p className="mt-3 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
-                  Image text and logos could not be checked. The price uses the details you entered and any available market/model data.
+                  The tag text could not be read. The price uses the details you entered and any available market/model data.
                 </p>
               )}
               <div className="mt-3">

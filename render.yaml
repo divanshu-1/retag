@@ -9,3 +9,7 @@ services:
     envVars:
       - key: MODEL_PATH
         value: models/pricing_model.joblib
+      - key: PADDLE_PDX_CACHE_HOME
+        value: /tmp/retag-paddlex-cache
+      - key: PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK
+        value: 'True'

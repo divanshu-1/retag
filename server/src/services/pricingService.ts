@@ -91,7 +91,9 @@ function buildUserConditionLabel(quality: ImageAnalysis['quality']): string {
 class PricingService {
   private getMlServiceUrl(): string | null {
     const configuredUrl = process.env.ML_SERVICE_URL?.trim();
-    const url = configuredUrl || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:8010');
+    const url = configuredUrl || (process.env.NODE_ENV === 'production'
+      ? 'https://retag-ml-service.onrender.com'
+      : 'http://127.0.0.1:8010');
     return url ? url.replace(/\/$/, '') : null;
   }
 

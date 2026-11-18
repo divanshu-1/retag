@@ -57,7 +57,7 @@ export interface IProduct extends Document {
       market_retail_min?: number;
       market_retail_max?: number;
       market_comparable_count?: number;
-      vision_available?: boolean;
+      ocr_available?: boolean;
     };
     price_suggestion: {
       suggested_price: number;        // AI-suggested price in INR
@@ -200,7 +200,7 @@ const ProductSchema = new Schema<IProduct>({
       market_retail_min: { type: Number },
       market_retail_max: { type: Number },
       market_comparable_count: { type: Number },
-      vision_available: { type: Boolean }
+      ocr_available: { type: Boolean }
     },
     price_suggestion: {
       suggested_price: { type: Number, required: true },

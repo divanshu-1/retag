@@ -1,6 +1,4 @@
 import axios from 'axios';
-import vision from '@google-cloud/vision';
-import fs from 'fs';
 
 // Types for AI analysis
 export interface ImageAnalysis {
@@ -16,7 +14,7 @@ export interface ImageAnalysis {
   market_retail_min?: number;
   market_retail_max?: number;
   market_comparable_count?: number;
-  vision_available?: boolean;
+  ocr_available?: boolean;
 }
 
 export interface PriceSuggestion {
@@ -89,57 +87,39 @@ async function fetchSerpPrice(brand: string, category: string, article: string, 
   }
 }
 
-// Initialize Google Vision client with proper credentials handling
-function initializeVisionClient() {
+async function detectTextWithPaddleOCR(imagesBase64: string[]): Promise<{ text: string; labels: string[]; logos: string[]; qualityScores: number[]; available: boolean }> {
   try {
-    // Check if we have JSON credentials in environment variable (for Railway)
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-      const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-      return new vision.ImageAnnotatorClient({ credentials });
-    }
-
-    // Check if we have a file path (for local development)
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS && fs.existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)) {
-      return new vision.ImageAnnotatorClient();
-    }
-
-    console.warn('Google Vision credentials not found. OCR features will be disabled.');
-    return null;
-  } catch (error) {
-    console.error('Failed to initialize Google Vision client:', error);
-    return null;
+    const configuredUrl = process.env.ML_SERVICE_URL?.trim();
+    const serviceUrl = configuredUrl || (process.env.NODE_ENV === 'production'
+      ? 'https://retag-ml-service.onrender.com'
+      : 'http://127.0.0.1:8010');
+    if (!serviceUrl) return { text: '', labels: [], logos: [], qualityScores: [], available: false };
+    const response = await axios.post(`${serviceUrl.replace(/\/$/, '')}/ocr`, { images: imagesBase64 }, { timeout: 90000 });
+    return {
+      text: String(response.data?.text || ''),
+      labels: [],
+      logos: [],
+      qualityScores: [],
+      available: Boolean(response.data?.available)
+    };
+  } catch (err) {
+    console.error('PaddleOCR request error:', err);
+    return { text: '', labels: [], logos: [], qualityScores: [], available: false };
   }
 }
 
-// Google Vision OCR for brand detection
-async function detectTextWithVision(imagesBase64: string[]): Promise<{ text: string; labels: string[]; logos: string[]; qualityScores: number[]; available: boolean }> {
-  try {
-    const client = initializeVisionClient();
-    if (!client) return { text: '', labels: [], logos: [], qualityScores: [], available: false };
-    const results = await Promise.all(imagesBase64.map(async (imageBase64) => {
-      const [visionResult] = await client.annotateImage({
-        image: { content: imageBase64 },
-        features: [
-          { type: 'TEXT_DETECTION', maxResults: 20 },
-          { type: 'LOGO_DETECTION', maxResults: 10 },
-          { type: 'LABEL_DETECTION', maxResults: 12 },
-          { type: 'IMAGE_PROPERTIES' }
-        ]
-      });
-      return visionResult;
-    }));
-    const text = results.flatMap((result) => result.textAnnotations || []).map((item) => item.description || '').join(' ');
-    return {
-      text,
-      labels: results.flatMap((result) => result.labelAnnotations || []).map((item) => item.description || ''),
-      logos: results.flatMap((result) => result.logoAnnotations || []).map((item) => item.description || ''),
-      qualityScores: results.flatMap((result) => result.imagePropertiesAnnotation?.dominantColors?.colors || []).map((item) => item.score || 0),
-      available: true
-    };
-  } catch (err) {
-    console.error('Google Vision analysis error:', err);
-    return { text: '', labels: [], logos: [], qualityScores: [], available: false };
-  }
+function extractTextBrand(text: string): string | undefined {
+  const aliases: Record<string, string[]> = {
+    Nike: ['nike'], Adidas: ['adidas'], Puma: ['puma'], "Levi's": ["levi's", 'levis'],
+    Zara: ['zara'], 'H&M': ['h&m', 'h and m'], Gucci: ['gucci'], 'Louis Vuitton': ['louis vuitton'],
+    Reebok: ['reebok'], 'Under Armour': ['under armour'], Fila: ['fila'], 'Tommy Hilfiger': ['tommy hilfiger'],
+    'Calvin Klein': ['calvin klein'], Superdry: ['superdry'], 'Jack & Jones': ['jack & jones', 'jack and jones'],
+    Wrangler: ['wrangler'], 'Pepe Jeans': ['pepe jeans'], Lee: ['lee'], 'Allen Solly': ['allen solly'],
+    'Van Heusen': ['van heusen'], Arrow: ['arrow'], Biba: ['biba'], Mango: ['mango'], Diesel: ['diesel'],
+    Roadster: ['roadster'], HRX: ['hrx'], Mufti: ['mufti'], 'Flying Machine': ['flying machine'],
+  };
+  const normalized = text.toLowerCase().replace(/[^a-z0-9& ]/g, ' ').replace(/\s+/g, ' ').trim();
+  return Object.entries(aliases).find(([, names]) => names.some((name) => ` ${normalized} `.includes(` ${name} `)))?.[0];
 }
 
 function normalizeBrand(text: string): string | undefined {
@@ -321,31 +301,30 @@ export class AIService {
     imagesBase64: string[],
     details: { article: string; brand: string; category: string; age?: string; wear_count?: number; damage?: string }
   ): Promise<ImageAnalysis> {
-    const visionResult = await detectTextWithVision(imagesBase64);
-    const combinedText = `${visionResult.text} ${visionResult.logos.join(' ')}`;
-    const detectedBrand = normalizeBrand(combinedText);
-    const labels = [...new Set(visionResult.labels)].filter(Boolean).slice(0, 8);
+    const visionResult = await detectTextWithPaddleOCR(imagesBase64);
+    const combinedText = visionResult.text;
+    const detectedBrand = extractTextBrand(combinedText) || normalizeBrand(combinedText);
     const ocrText = visionResult.text.replace(/\s+/g, ' ').trim().slice(0, 500);
     const conditionScore = conditionFromDetails(details);
     const quality = conditionScore >= 9 ? 'excellent' : conditionScore >= 7 ? 'good' : conditionScore >= 5 ? 'fair' : 'poor';
-    const visionAvailable = visionResult.available;
+    const ocrAvailable = visionResult.available;
     const confidence = detectedBrand
-      ? 'Brand matched from tag/logo.'
-      : visionAvailable ? 'Brand not independently confirmed; using seller entry.' : 'Google Vision credentials unavailable; image OCR and labels were not analyzed.';
+      ? 'Brand matched from tag text.'
+      : ocrAvailable ? 'No known brand was matched in the tag text; using seller entry.' : 'PaddleOCR service unavailable; tag text was not analyzed.';
     const market = await fetchSerpPrice(detectedBrand || details.brand, details.category, details.article, ocrText);
     return {
-      caption: `${confidence} Visual labels: ${labels.join(', ') || details.category}. Condition reflects declared wear and damage; image condition is not yet visually graded.`,
+      caption: `${confidence} OCR text: ${ocrText || 'none detected'}. Condition reflects declared wear and damage; image condition is not yet visually graded.`,
       quality,
       category: details.category,
       brand_detected: detectedBrand,
       condition_score: conditionScore,
-      features: [...labels, ...visionResult.logos.slice(0, 3)],
+      features: detectedBrand ? [`OCR brand: ${detectedBrand}`] : [],
       ocr_text: ocrText || undefined,
       market_retail_price: market?.avg,
       market_retail_min: market?.min,
       market_retail_max: market?.max,
       market_comparable_count: market?.count,
-      vision_available: visionAvailable
+      ocr_available: ocrAvailable
     };
   }
 
